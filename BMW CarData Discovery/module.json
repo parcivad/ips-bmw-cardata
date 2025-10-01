@@ -1,0 +1,15 @@
+{
+  "id": "{239D9BEC-7D7D-8653-B36E-F29F818F454C}",
+  "name": "BMW CarData Discovery",
+  "type": 5,
+  "vendor": "BMW",
+  "aliases":
+  [
+    "BMW CarData Discovery"
+  ],
+  "url": "https://github.com/parcivad/ips-bmw-cardata",
+  "parentRequirements": [],
+  "childRequirements": [],
+  "implemented": [],
+  "prefix": "CARDATA"
+}
