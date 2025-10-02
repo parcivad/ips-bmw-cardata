@@ -13,6 +13,14 @@ function saveData(array $data): void {
 }
 
 // Getter
+function getClientId(): string {
+    return getData()["client_id"];
+}
+
+function getStreamId(): string {
+    return getData()["stream_id"];
+}
+
 function getCodeVerifier(): string {
     return getData()['code_verifier'];
 }
@@ -70,6 +78,18 @@ function getExpiresAt(): int {
 }
 
 // Setter
+function setClientId(string $clientId): void {
+    $data = getData();
+    $data["client_id"] = $clientId;
+    saveData($data);
+}
+
+function setStreamId(string $streamId): void {
+    $data = getData();
+    $data["stream_id"] = $streamId;
+    saveData($data);
+}
+
 function setCodeVerifier(string $codeVerifier): void {
     $data = getData();
     $data["code_verifier"] = $codeVerifier;
@@ -99,6 +119,33 @@ function setCarDataTokenResponse($carDataTokenResponse): void {
         "scope" => $carDataTokenResponse["scope"],
         "id_token" => $carDataTokenResponse["id_token"],
         "expires_at" => time() + $carDataTokenResponse["expires_in"]
+    ];
+    saveData($data);
+}
+
+// reset
+function resetDeviceCodeFlowResponse(): void {
+    $data = getData();
+    $data["device_code_flow"] = [
+        "user_code" => "",
+        "device_code" => "",
+        "interval" => "",
+        "verification_uri_complete" => "",
+        "verification_uri" => "",
+        "expires_at" => 0
+    ];
+    saveData($data);
+}
+
+function resetCarDataTokenResponse(): void {
+    $data = getData();
+    $data["device_code_flow"] = [
+        "user_code" => "",
+        "device_code" => "",
+        "interval" => "",
+        "verification_uri_complete" => "",
+        "verification_uri" => "",
+        "expires_at" => 0
     ];
     saveData($data);
 }

@@ -1,4 +1,6 @@
 {
+  "client_id": "",
+  "stream_id": "",
   "code_verifier": "",
   "device_code_flow": {
     "user_code": "",
