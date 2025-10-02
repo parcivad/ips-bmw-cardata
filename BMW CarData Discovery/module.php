@@ -42,16 +42,32 @@ class BMWCarDataDiscovery extends IPSModuleStrict {
         $clientId = $this->ReadPropertyString("clientId");
         if ($clientId == null) return;
 
-        echo getDeviceCodeFlow($clientId);
+        echo getDeviceCodeFlow();
         $this->ReloadForm();
     }
 
     public function token(): void {
         if (getDeviceCode() == null) return;
 
-        $clientId = $this->ReadPropertyString("clientId");
-        getToken($clientId);
+        getToken();
         $this->ReloadForm();
+    }
+
+    private function getVehicleMapping(): array {
+        if (empty($this->ReadPropertyString("clientId"))) return [[ "vin" => "Follow Step 1 Instructions"]];
+        else if (empty(getUserCode()) && empty(getAccessToken())) return [[ "vin" => "Follow Step 2 Instructions"]];
+        else if (empty(getAccessToken())) return [[ "vin" => "Follow Step 2 Instructions"]];
+
+        $configList = [];
+        $response = apiCall("/customers/vehicles/mappings");
+        foreach ($response as $vehicle) {
+            $configList[] = [
+                "vin" => $vehicle["vin"],
+                "createdAt" => $vehicle["mappedSince"],
+            ];
+        }
+
+        return $configList;
     }
 
     private function FormElements(): array {
@@ -119,26 +135,27 @@ class BMWCarDataDiscovery extends IPSModuleStrict {
                                     [
                                         "type" => "ValidationTextBox",
                                         "name" => "clientId",
+                                        "width" => "400px",
                                         "caption" => "Client ID",
                                         "required" => true,
                                         "onChange" => ""
                                     ],
                                     [
                                         "type" => "Button",
-                                        "caption" => "BMW Vehicles",
+                                        "caption" => "BMW Fahrzeuge",
                                         "link" => true,
                                         "onClick" => "echo 'https://www.bmw.de/de-de/mybmw/vehicle-overview';"
                                     ],
                                     [
                                         "type" => "Button",
-                                        "caption" => "Authorize",
+                                        "caption" => "Autorisieren",
                                         "enabled" => !empty($this->ReadPropertyString("clientId")),
                                         "link" => true,
                                         "onClick" => 'BMWDiscovery_authorize($id);'
                                     ],
                                     [
                                         "type" => "Button",
-                                        "caption" => "Finish authorization",
+                                        "caption" => "Autorisierung abschließen",
                                         "enabled" => !empty(getUserCode()),
                                         "onClick" => 'BMWDiscovery_token($id);'
                                     ]
@@ -150,23 +167,52 @@ class BMWCarDataDiscovery extends IPSModuleStrict {
                                     [
                                         "type" => "ValidationTextBox",
                                         "name" => "streamId",
+                                        "width" => "400px",
                                         "caption" => "DataStream Benutzername",
                                         "required" => true
                                     ],
                                     [
                                         "type" => "CheckBox",
+                                        "name" => "stream",
                                         "caption" => "Stream",
-                                        "enabled" => false,
-                                        "value" => false
+                                        "enabled" => !empty($this->ReadPropertyString("streamId")),
                                     ]
                                 ]
                             ]
                         ]
                     ]
                 ]
+            ],
+            [
+                "type" => "Configurator",
+                "name" => "BMWCarDataDiscovery",
+                "caption" => "BMW CarData Fahrzeuge",
+                "rowCount" => 4,
+                "add" => false,
+                "delete" => true,
+                "columns" => [
+                    [
+                        "caption" => "VIN",
+                        "name" => "vin",
+                        "width" => "50%",
+                        "add" => false,
+                    ],
+                    [
+                        "caption" => "Hinzugefügt am",
+                        "name" => "createdAt",
+                        "width" => "50%",
+                        "add" => false,
+                    ]
+                ],
+                "sort" => [
+                    "column" => "createdAt",
+                    "direction" => "descending"
+                ],
+                "values" => $this->getVehicleMapping(),
             ]
         ];
     }
+
     private function FormActions(): array {
         return [];
     }

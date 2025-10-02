@@ -73,7 +73,7 @@ function getIdToken(): string {
     return getData()["car_data"]["id_token"];
 }
 
-function getExpiresAt(): int {
+function getTokenExpiresAt(): int {
     return getData()["car_data"]["expires_at"];
 }
 
