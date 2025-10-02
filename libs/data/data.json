@@ -1,0 +1,20 @@
+{
+  "code_verifier": null,
+  "device_code_flow": {
+    "user_code": null,
+    "device_code": null,
+    "interval": null,
+    "verification_uri_complete": null,
+    "verification_uri": null,
+    "expires_in": null
+  },
+  "car_data": {
+    "gcid": null,
+    "token_type": null,
+    "access_token": null,
+    "refresh_token": null,
+    "scope": null,
+    "id_token": null,
+    "expires_in": null
+  }
+}

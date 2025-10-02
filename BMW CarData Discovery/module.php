@@ -6,7 +6,12 @@ class BMWCarDataDiscovery extends IPSModuleStrict {
         // Don't delete this line
         parent::Create();
 
-        $this->RegisterAttributeInteger("authorizeStep", 1);
+        $this->RegisterPropertyString("clientId", null);
+        $this->RegisterPropertyString("dataStreamId", null);
+        $this->RegisterPropertyBoolean("stream", false);
+
+        $this->RegisterAttributeString("authUrl", null);
+
     }
 
     public function ApplyChanges(): void {
@@ -14,124 +19,67 @@ class BMWCarDataDiscovery extends IPSModuleStrict {
         parent::ApplyChanges();
     }
 
-    public function nextAuthorizeStep(): void {
-        $nextAuthorizeStep = $this->ReadAttributeInteger("authorizeStep") + 1;
-        $nextAuthorizeStep > 5 ? $this->WriteAttributeInteger("authorizeStep", 1)
-            : $this->WriteAttributeInteger("authorizeStep", $nextAuthorizeStep);
-    }
-
     public function GetConfigurationForm(): string {
-        // return current form
-        $Form = json_encode([
+        return json_encode([
             'elements' => $this->FormElements(),
             'actions'  => $this->FormActions(),
             'status'   => $this->FormStatus(),
         ]);
-        $this->SendDebug('FORM', $Form, 0);
-        $this->SendDebug('FORM', json_last_error_msg(), 0);
+    }
 
-        return $Form;
+    public function authorize(): void {
+        $clientId = $this->ReadPropertyString("clientId");
+        if ($clientId == null) return;
+
+        $verification_complete_uri = getDeviceCodeFlow($clientId);
+        $this->WriteAttributeString("authUrl", $verification_complete_uri);
+        $this->ReloadForm();
     }
 
     private function FormElements(): array {
-        $authorizeStep = $this->ReadAttributeInteger("authorizeStep");
 
         return [
-            $authorizeStep == 2 ? [
-                "type" => "PopupAlert",
-                "popup" => [
-                    "closeCaption" => "Cancel",
-                    "items" => [
-                        [
-                            "type" => "Label",
-                            "caption" => "test"
-                        ]
-                    ]
-                ]
-            ] : [
-                "type" => "Label",
-                "caption" => "test"
-            ],
             [
-                "type" => "PopupButton",
-                "caption" => "Grant access",
-                "popup" => [
-                    "caption" => "Grant access for vehicles",
-                    "items" => [
-                        [
-                            "type" => "ProgressBar",
-                            "name" => "AuthorizeProgress",
-                            "caption" => "Schritt " . $authorizeStep . "/5",
-                            "indeterminate" => false,
-                            "minimum" => 0,
-                            "maximum" => 5,
-                            "current" => $authorizeStep,
-                            "width" => "100%"
-                        ],
-                        [
-                            "type" => "Label",
-                            "caption" => "Log into your MyBMW Account",
-                            "bold" => true
-                        ],
-                        [
-                            "type" => "Label",
-                            "caption" => "Damit das IP-Symcon Modul auf deine BMW Daten zugreifen kann musst du zuerst einen CarData Client erstellen und diesen für das Modul autorisieren."
-                        ],
-                        [
-                            "type" => "Label",
-                            "color" => "c72100",
-                            "caption" => "Melde dich mit dem Hauptnutzer-Konto von dem Auto an!"
-                        ],
-                        [
-                            "type" => "Label",
-                            "caption" => "https://www.bmw.de/de-de/mybmw/vehicle-overview",
-                            "link" => true
+                "type" => "ColumnLayout",
+                "items" => [
+                    [
+                        "type" => "RowLayout",
+                        "items" => [
+                            [
+                                "type" => "ValidationTextBox",
+                                "name" => "clientId",
+                                "caption" => "Client ID",
+                                "required" => true,
+                                "onChange" => 'BMWDiscovery_authorize($id);'
+                            ],
+                            [
+                                "type" => "Button",
+                                "caption" => "BMW Vehicles",
+                                "link" => true,
+                                "onClick" => "echo 'https://www.bmw.de/de-de/mybmw/vehicle-overview';"
+                            ],
+                            [
+                                "type" => "Button",
+                                "caption" => "Authorize",
+                                "enabled" => $this->ReadPropertyString("clientId") != null,
+                                "link" => true,
+                                "onClick" => "echo '" . $this->ReadAttributeString("authUrl") . "';"
+                            ]
                         ]
                     ],
-                    "buttons" => [
-                        [
-                            "type" => "PopupButton",
-                            "caption" => "Grant access",
-                            "popup" => [
-                                "caption" => "Grant access for vehicles",
-                                "items" => [
-                                    [
-                                        "type" => "ProgressBar",
-                                        "name" => "AuthorizeProgress",
-                                        "caption" => "Schritt " . $authorizeStep . "/5",
-                                        "indeterminate" => false,
-                                        "minimum" => 0,
-                                        "maximum" => 5,
-                                        "current" => $authorizeStep,
-                                        "width" => "100%"
-                                    ],
-                                    [
-                                        "type" => "Label",
-                                        "caption" => "Log into your MyBMW Account",
-                                        "bold" => true
-                                    ],
-                                    [
-                                        "type" => "Label",
-                                        "caption" => "Damit das IP-Symcon Modul auf deine BMW Daten zugreifen kann musst du zuerst einen CarData Client erstellen und diesen für das Modul autorisieren."
-                                    ],
-                                    [
-                                        "type" => "Label",
-                                        "color" => "c72100",
-                                        "caption" => "Melde dich mit dem Hauptnutzer-Konto von dem Auto an!"
-                                    ],
-                                    [
-                                        "type" => "Label",
-                                        "caption" => "https://www.bmw.de/de-de/mybmw/vehicle-overview",
-                                        "link" => true
-                                    ]
-                                ],
-                                "buttons" => [
-                                    [
-                                        "type" => "Button",
-                                        "caption" => "Continue",
-                                        "onClick" => 'BMWDiscovery_nextAuthorizeStep( $id );'
-                                    ]
-                                ]
+                    [
+                        "type" => "RowLayout",
+                        "items" => [
+                            [
+                                "type" => "ValidationTextBox",
+                                "caption" => "DataStream ID",
+                                "required" => true
+                            ],
+                            [
+                                "type" => "CheckBox",
+                                "caption" => "Stream",
+                                "enabled" => false,
+                                "value" => false
                             ]
                         ]
                     ]
@@ -139,7 +87,6 @@ class BMWCarDataDiscovery extends IPSModuleStrict {
             ]
         ];
     }
-
     private function FormActions(): array {
         return [];
     }
