@@ -1,10 +1,12 @@
 <?php
 
+require_once(dirname(__FILE__) . "/data/dataHandler.php");
+
 /**
  * @throws \Random\RandomException
  */
 function getDeviceCodeFlow(string $clientId): string {
-    /*$headers = [
+    $headers = [
         "Content-Type" => "application/x-www-form-urlencoded",
         "Accept" => "application/json"
     ];
@@ -33,18 +35,45 @@ function getDeviceCodeFlow(string $clientId): string {
     $response = curl_exec($ch);
     curl_close($ch);
 
-    $query = json_decode($response, true);
-    */
-
     // example data
-    $query = json_decode('{
-    "user_code": "test",
-    "device_code": "test",
-    "interval": 5,
-    "verification_uri_complete": "https://customer.bmwgroup.com/oneid/link?user_code=test",
-    "verification_uri": "https://customer.bmwgroup.com/oneid/link",
-    "expires_in": 300
-}', true);
+    $query = json_decode($response, true);
+
+    if (isset($query["error"])) {
+        echo $query["error_description"];
+    }
+
     setDeviceCodeFlowResponse($query);
     return $query["verification_uri_complete"];
+}
+
+function getToken(string $clientId): void {
+    $headers = [
+        "Content-Type" => "application/x-www-form-urlencoded",
+        "Accept" => "application/json"
+    ];
+
+    $params = [
+        "client_id" => $clientId,
+        "device_code" => getDeviceCode(),
+        "grant_type" => "urn:ietf:params:oauth:grant-type:device_code",
+        "code_verifier" => getCodeVerifier()
+    ];
+    $params = http_build_query($params);
+
+    $curlOptions = array(
+        CURLOPT_URL => "/gcdm/oauth/token",
+        CURLOPT_HTTPHEADER => $headers,
+        CURLOPT_POST => true,
+        CURLOPT_POSTFIELDS => $params,
+        CURLOPT_RETURNTRANSFER => true
+    );
+
+    $ch = curl_init();
+    curl_setopt_array($ch, $curlOptions);
+    $response = curl_exec($ch);
+    curl_close($ch);
+
+    // example data
+    $query = json_decode($response, true);
+    setCarDataTokenResponse($query);
 }

@@ -37,8 +37,8 @@ function getVerificationUri(): string {
     return getData()["device_code_flow"]["verification_uri"];
 }
 
-function getDeviceCodeFlowExpires(): int {
-    return getData()["device_code_flow"]["expires_in"];
+function getDeviceCodeFlowExpiresAt(): int {
+    return getData()["device_code_flow"]["expires_at"];
 }
 
 function getGcid(): string {
@@ -65,8 +65,8 @@ function getIdToken(): string {
     return getData()["car_data"]["id_token"];
 }
 
-function getExpiresIn(): int {
-    return getData()["car_data"]["expires_in"];
+function getExpiresAt(): int {
+    return getData()["car_data"]["expires_at"];
 }
 
 // Setter
@@ -78,17 +78,27 @@ function setCodeVerifier(string $codeVerifier): void {
 
 function setDeviceCodeFlowResponse($deviceCodeFlowResponse): void {
     $data = getData();
+    $data["device_code_flow"] = [
+        "user_code" => $deviceCodeFlowResponse["user_code"],
+        "device_code" => $deviceCodeFlowResponse["device_code"],
+        "interval" => $deviceCodeFlowResponse["interval"],
+        "verification_uri_complete" => $deviceCodeFlowResponse["verification_uri_complete"],
+        "verification_uri" => $deviceCodeFlowResponse["verification_uri"],
+        "expires_at" => time() + $deviceCodeFlowResponse["expires_in"]
+    ];
+    saveData($data);
 }
 
 function setCarDataTokenResponse($carDataTokenResponse): void {
     $data = getData();
-    $data["device_code_flow"] = [
-        "user_code" => $carDataTokenResponse["user_code"],
-        "device_code" => $carDataTokenResponse["device_code"],
-        "interval" => $carDataTokenResponse["interval"],
-        "verification_uri_complete" => $carDataTokenResponse["verification_uri_complete"],
-        "verification_uri" => $carDataTokenResponse["verification_uri"],
-        "expires_in" => $carDataTokenResponse["expires_in"],
+    $data["car_data"] = [
+        "gcid" => $carDataTokenResponse["gcid"],
+        "token_type" => $carDataTokenResponse["token_type"],
+        "access_token" => $carDataTokenResponse["access_token"],
+        "refresh_token" => $carDataTokenResponse["refresh_token"],
+        "scope" => $carDataTokenResponse["scope"],
+        "id_token" => $carDataTokenResponse["id_token"],
+        "expires_at" => time() + $carDataTokenResponse["expires_in"]
     ];
     saveData($data);
 }
