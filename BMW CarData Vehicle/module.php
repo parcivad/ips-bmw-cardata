@@ -15,9 +15,15 @@ class BMWCarDataVehicle extends IPSModuleStrict {
         parent::ApplyChanges();
     }
 
+    public function GetCompatibleParents() {
+
+        return '{"type": "require", "moduleIDs": ["{1FD5C2E8-43BD-F09C-CAC5-4A1E7CE08F24}"]}';
+
+    }
+
     public function testSendMethod() {
         $result = $this->SendDataToParent(json_encode([
-                "DataID" => "{1FD5C2E8-43BD-F09C-CAC5-4A1E7CE08F24}",
+                "DataID" => "{F45D0739-5352-346E-C3FB-BF292A917942}",
                 "Buffer" => utf8_decode("test")
             ]
         ));
