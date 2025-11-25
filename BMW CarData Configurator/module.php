@@ -95,7 +95,7 @@ class BMWCarDataConfigurator extends IPSModuleStrict {
         $this->WriteAttributeString("interval", $query["interval"]);
         $this->WriteAttributeString("verificationUriComplete", $query["verification_uri_complete"]);
         $this->WriteAttributeString("verificationUri", $query["verification_uri"]);
-        $this->WriteAttributeString("deviceCodeExpiresAt", time() + $query["expires_in"]);
+        $this->WriteAttributeInteger("deviceCodeExpiresAt", time() + $query["expires_in"]);
 
         echo $query["verification_uri_complete"];
         $this->ReloadForm();
@@ -193,7 +193,7 @@ class BMWCarDataConfigurator extends IPSModuleStrict {
             return [[ "vin" => "Follow Step 2 Instructions"]];
 
         $configList = [];
-        $response = apiCall("/customers/vehicles/mappings");
+        $response = $this->apiCall("/customers/vehicles/mappings");
         foreach ($response as $vehicle) {
             $configList[] = [
                 "vin" => $vehicle["vin"],
@@ -291,7 +291,7 @@ class BMWCarDataConfigurator extends IPSModuleStrict {
                                     [
                                         "type" => "Button",
                                         "caption" => "Autorisieren",
-                                        "enabled" => !empty($this->ReadPropertyString("clientId")),
+                                        "enabled" => !empty($this->ReadPropertyString("clientId")) && empty($this->ReadAttributeString("refreshToken")),
                                         "link" => true,
                                         "onClick" => 'BMWConfigurator_authorize($id);'
                                     ],
