@@ -47,6 +47,13 @@ class BMWCarDataConfigurator extends IPSModuleStrict {
         }
     }
 
+    public function ForwardData(string $JSONString): string {
+        $data = json_decode($JSONString, true);
+        IPS_LogMessage("ForwardData", utf8_decode($data->Buffer));
+
+        return "Test it";
+    }
+
     public function authorize(): void {
         if ($this->ReadPropertyString("clientId") == null) return;
 
@@ -154,10 +161,6 @@ class BMWCarDataConfigurator extends IPSModuleStrict {
         $this->WriteAttributeInteger("deviceCodeExpiresAt", null);
 
         $this->ReloadForm();
-    }
-
-    public function testSendMethod() {
-        IPS_LogMessage("Send Test Method result: ", $this->SendDataToChildren('{"test": "testData"}'));
     }
 
     private function apiCall(string $endpoint): array {

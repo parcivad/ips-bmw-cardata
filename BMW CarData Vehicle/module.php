@@ -15,9 +15,18 @@ class BMWCarDataVehicle extends IPSModuleStrict {
         parent::ApplyChanges();
     }
 
+    public function testSendMethod() {
+        $result = $this->SendDataToParent(json_encode([
+                "DataID" => "{F45D0739-5352-346E-C3FB-BF292A917942}",
+                "Buffer" => utf8_decode("test")
+            ]
+        ));
+        IPS_LogMessage("Send from Vehicle, received: ", utf8_decode($result->Buffer));
+    }
+
     public function ReceiveData(string $JSONString): string {
         $data = json_decode($JSONString, true);
-        IPS_LogMessage("ReceiveData Vehicle", utf8_decode($data->Buffer));
+        //IPS_LogMessage("ReceiveData Vehicle", $JSONString);
 
         return "OK von Vehicle: " . $this->InstanceID;
     }
