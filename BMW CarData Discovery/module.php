@@ -1,6 +1,6 @@
 <?php
 
-class BMWCarDataDiscovery extends IPSModuleStrict {
+class BMWCarDataConfigurator extends IPSModuleStrict {
 
     public function Create(): void {
         // Don't delete this line
@@ -178,8 +178,8 @@ class BMWCarDataDiscovery extends IPSModuleStrict {
         $response = curl_exec($ch);
         curl_close($ch);
 
-        IPS_LogMessage("BMWDiscovery", $tokenType . " " . $accessToken);
-        IPS_LogMessage("BMWDiscovery", json_encode($headers));
+        IPS_LogMessage("BMWConfigurator", $tokenType . " " . $accessToken);
+        IPS_LogMessage("BMWConfigurator", json_encode($headers));
 
         return json_decode($response, true);
     }
@@ -293,13 +293,13 @@ class BMWCarDataDiscovery extends IPSModuleStrict {
                                         "caption" => "Autorisieren",
                                         "enabled" => !empty($this->ReadPropertyString("clientId")),
                                         "link" => true,
-                                        "onClick" => 'BMWDiscovery_authorize($id);'
+                                        "onClick" => 'BMWConfigurator_authorize($id);'
                                     ],
                                     [
                                         "type" => "Button",
                                         "caption" => "Autorisierung abschließen",
                                         "enabled" => !empty($this->ReadAttributeString("userCode")),
-                                        "onClick" => 'BMWDiscovery_token($id);'
+                                        "onClick" => 'BMWConfigurator_token($id);'
                                     ]
                                 ]
                             ],
