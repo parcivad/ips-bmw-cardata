@@ -1,9 +1,5 @@
 <?php
 
-require_once(dirname(__FILE__, 2) . "/libs/apiHandler.php");
-require_once(dirname(__FILE__, 2) . "/libs/data/dataHandler.php");
-
-
 class BMWCarDataDiscovery extends IPSModuleStrict {
 
     public function Create(): void {
@@ -14,49 +10,186 @@ class BMWCarDataDiscovery extends IPSModuleStrict {
         $this->RegisterPropertyString("streamId", null);
         $this->RegisterPropertyBoolean("stream", false);
 
+        $this->RegisterAttributeString("codeVerifier", null);
+        $this->RegisterAttributeString("userCode", null);
+        $this->RegisterAttributeString("deviceCode", null);
+        $this->RegisterAttributeString("interval", null);
+        $this->RegisterAttributeString("verificationUriComplete", null);
+        $this->RegisterAttributeString("verificationUri", null);
+        $this->RegisterAttributeInteger("deviceCodeExpiresAt", null);
+        $this->RegisterAttributeString("gcid", null);
+        $this->RegisterAttributeString("tokenType", null);
+        $this->RegisterAttributeString("accessToken", null);
+        $this->RegisterAttributeString("refreshToken", null);
+        $this->RegisterAttributeString("scope", null);
+        $this->RegisterAttributeString("idToken", null);
+        $this->RegisterAttributeInteger("carDataExpiresAt", null);
     }
 
     public function ApplyChanges(): void {
         // Don't delete this line
         parent::ApplyChanges();
 
-        $clientId = $this->ReadPropertyString("clientId");
-        setClientId($clientId);
-        setStreamId($this->ReadPropertyString("streamId"));
-
-        if (empty($clientId)) {
-            resetDeviceCodeFlowResponse();
-            resetCarDataTokenResponse();
+        if (empty($this->ReadPropertyString("clientId"))) {
+            $this->WriteAttributeString("gcid", null);
+            $this->WriteAttributeString("tokenType", null);
+            $this->WriteAttributeString("accessToken", null);
+            $this->WriteAttributeString("refreshToken", null);
+            $this->WriteAttributeString("scope", null);
+            $this->WriteAttributeString("idToken", null);
+            $this->WriteAttributeInteger("carDataExpiresAt", null);
+            $this->WriteAttributeString("userCode", null);
+            $this->WriteAttributeString("deviceCode", null);
+            $this->WriteAttributeString("interval", null);
+            $this->WriteAttributeString("verificationUriComplete", null);
+            $this->WriteAttributeString("verificationUri", null);
+            $this->WriteAttributeInteger("deviceCodeExpiresAt", null);
         }
     }
 
-    public function GetConfigurationForm(): string {
-        return json_encode([
-            'elements' => $this->FormElements(),
-            'actions'  => $this->FormActions(),
-            'status'   => $this->FormStatus(),
-        ]);
-    }
-
     public function authorize(): void {
-        $clientId = $this->ReadPropertyString("clientId");
-        if ($clientId == null) return;
+        if ($this->ReadPropertyString("clientId") == null) return;
 
-        echo getDeviceCodeFlow();
+        $headers = [
+            "Content-Type: application/x-www-form-urlencoded",
+            "Accept: application/json"
+        ];
+
+        $code_challenge = bin2hex(random_bytes(2));
+        setCodeVerifier(hash('sha256', $code_challenge));
+
+        $params = [
+            "client_id" => $this->ReadPropertyString("clientId"),
+            "response_type" => "device_code",
+            "scope" => "authenticate_user openid cardata:streaming:read cardata:api:read",
+            "code_challenge" => "6xSQkAzH8oEmFMieIfFjAlAsYMS23uhOCXg70Gf13p8", //$code_challenge,
+            "code_challenge_method" => "S256",
+        ];
+        $params = http_build_query($params);
+
+        $curlOptions = array(
+            CURLOPT_URL => "https://customer.bmwgroup.com/gcdm/oauth/device/code",
+            CURLOPT_HTTPHEADER => $headers,
+            CURLOPT_POST => true,
+            CURLOPT_POSTFIELDS => $params,
+            CURLOPT_TIMEOUT => 10,
+            CURLOPT_FOLLOWLOCATION => true,
+            CURLOPT_RETURNTRANSFER => true
+        );
+
+        $ch = curl_init();
+        curl_setopt_array($ch, $curlOptions);
+        $response = curl_exec($ch);
+        curl_close($ch);
+
+        // example data
+        $query = json_decode($response, true);
+
+        if (isset($query["error"])) {
+            echo $query["error_description"];
+        }
+
+        $this->WriteAttributeString("userCode", $query["user_code"]);
+        $this->WriteAttributeString("deviceCode", $query["device_code"]);
+        $this->WriteAttributeString("interval", $query["interval"]);
+        $this->WriteAttributeString("verificationUriComplete", $query["verification_uri_complete"]);
+        $this->WriteAttributeString("verificationUri", $query["verification_uri"]);
+        $this->WriteAttributeString("deviceCodeExpiresAt", time() + $query["expires_in"]);
+
+        echo $query["verification_uri_complete"];
         $this->ReloadForm();
     }
 
     public function token(): void {
-        if (getDeviceCode() == null) return;
+        if ($this->ReadAttributeString("deviceCode") == null) return;
 
-        getToken();
+        $headers = [
+            "Content-Type: application/x-www-form-urlencoded",
+            "Accept: application/json"
+        ];
+
+        $params = [
+            "client_id" => $this->ReadPropertyString("clientId"),
+            "device_code" => $this->ReadAttributeString("deviceCode"),
+            "grant_type" => "urn:ietf:params:oauth:grant-type:device_code",
+            "code_verifier" => "Lc-kVofs3uj2Aj5Yrpd8X8Sa0N6tGmp4VIjflKSbFSQ"  //getCodeVerifier()
+        ];
+        $params = http_build_query($params);
+
+        $curlOptions = array(
+            CURLOPT_URL => "https://customer.bmwgroup.com/gcdm/oauth/token",
+            CURLOPT_HTTPHEADER => $headers,
+            CURLOPT_POST => true,
+            CURLOPT_POSTFIELDS => $params,
+            CURLOPT_TIMEOUT => 10,
+            CURLOPT_FOLLOWLOCATION => true,
+            CURLOPT_RETURNTRANSFER => true
+        );
+
+        $ch = curl_init();
+        curl_setopt_array($ch, $curlOptions);
+        $response = curl_exec($ch);
+        curl_close($ch);
+        $query = json_decode($response, true);
+
+        // on error
+        if (isset($query["error"])) {
+            setCodeVerifier($query["error_description"]);
+            return;
+        }
+
+        $this->WriteAttributeString("gcid", $query["gcid"]);
+        $this->WriteAttributeString("tokenType", $query["token_type"]);
+        $this->WriteAttributeString("accessToken", $query["access_token"]);
+        $this->WriteAttributeString("refreshToken", $query["refresh_token"]);
+        $this->WriteAttributeString("scope", $query["scope"]);
+        $this->WriteAttributeString("idToken", $query["id_token"]);
+        $this->WriteAttributeInteger("carDataExpiresAt", time() + $query["expires_in"]);
+        $this->WriteAttributeString("userCode", null);
+        $this->WriteAttributeString("deviceCode", null);
+        $this->WriteAttributeString("interval", null);
+        $this->WriteAttributeString("verificationUriComplete", null);
+        $this->WriteAttributeString("verificationUri", null);
+        $this->WriteAttributeInteger("deviceCodeExpiresAt", null);
+
         $this->ReloadForm();
     }
 
+    private function apiCall(string $endpoint): array {
+        // TODO token expires and refresh
+
+        $tokenType = $this->ReadAttributeString("tokenType");
+        $accessToken = $this->ReadAttributeString("accessToken");
+
+        $headers = [
+            "Authorization: " . $tokenType . " " . $accessToken,
+            "Accept: application/json",
+            "x-version: v1"
+        ];
+
+        $ch = curl_init();
+        curl_setopt_array($ch, array(
+            CURLOPT_URL => "https://api-cardata.bmwgroup.com" . $endpoint,
+            CURLOPT_HTTPHEADER => $headers,
+            CURLOPT_CUSTOMREQUEST => "GET",
+            CURLOPT_RETURNTRANSFER => true
+        ));
+        $response = curl_exec($ch);
+        curl_close($ch);
+
+        IPS_LogMessage("BMWDiscovery", $tokenType . " " . $accessToken);
+        IPS_LogMessage("BMWDiscovery", json_encode($headers));
+
+        return json_decode($response, true);
+    }
+
     private function getVehicleMapping(): array {
-        if (empty($this->ReadPropertyString("clientId"))) return [[ "vin" => "Follow Step 1 Instructions"]];
-        else if (empty(getUserCode()) && empty(getAccessToken())) return [[ "vin" => "Follow Step 2 Instructions"]];
-        else if (empty(getAccessToken())) return [[ "vin" => "Follow Step 2 Instructions"]];
+        if (empty($this->ReadPropertyString("clientId")))
+            return [[ "vin" => "Follow Step 1 Instructions"]];
+        else if (empty($this->ReadAttributeString("userCode")) && empty($this->ReadAttributeString("accessToken")))
+            return [[ "vin" => "Follow Step 2 Instructions"]];
+        else if (empty($this->ReadAttributeString("accessToken")))
+            return [[ "vin" => "Follow Step 2 Instructions"]];
 
         $configList = [];
         $response = apiCall("/customers/vehicles/mappings");
@@ -68,6 +201,14 @@ class BMWCarDataDiscovery extends IPSModuleStrict {
         }
 
         return $configList;
+    }
+
+    public function GetConfigurationForm(): string {
+        return json_encode([
+            'elements' => $this->FormElements(),
+            //'actions'  => $this->FormActions(),
+            //'status'   => $this->FormStatus(),
+        ]);
     }
 
     private function FormElements(): array {
@@ -156,7 +297,7 @@ class BMWCarDataDiscovery extends IPSModuleStrict {
                                     [
                                         "type" => "Button",
                                         "caption" => "Autorisierung abschließen",
-                                        "enabled" => !empty(getUserCode()),
+                                        "enabled" => !empty($this->ReadAttributeString("userCode")),
                                         "onClick" => 'BMWDiscovery_token($id);'
                                     ]
                                 ]
@@ -211,13 +352,5 @@ class BMWCarDataDiscovery extends IPSModuleStrict {
                 "values" => $this->getVehicleMapping(),
             ]
         ];
-    }
-
-    private function FormActions(): array {
-        return [];
-    }
-
-    private function FormStatus(): array {
-        return [];
     }
 }

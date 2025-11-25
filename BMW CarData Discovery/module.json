@@ -3,8 +3,7 @@
   "name": "BMW CarData Discovery",
   "type": 5,
   "vendor": "BMW",
-  "aliases":
-  [
+  "aliases": [
     "BMW CarData Discovery"
   ],
   "url": "https://github.com/parcivad/ips-bmw-cardata",
