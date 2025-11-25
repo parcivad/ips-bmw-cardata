@@ -1,10 +1,10 @@
 {
-  "id": "{239D9BEC-7D7D-8653-B36E-F29F818F454C}",
+  "id": "{063791AB-5630-E663-91FA-8AA733FA7C4A}",
   "name": "BMW CarData Configurator",
-  "type": 5,
+  "type": 4,
   "vendor": "BMW",
   "aliases": [
-    "BMW CarData Discovery"
+    "BMW CarData Configurator"
   ],
   "url": "https://github.com/parcivad/ips-bmw-cardata",
   "parentRequirements": [],
