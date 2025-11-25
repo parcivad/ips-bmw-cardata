@@ -1,7 +1,7 @@
 {
   "id": "{239D9BEC-7D7D-8653-B36E-F29F818F454C}",
-  "name": "BMW CarData Discovery",
-  "type": 5,
+  "name": "BMW CarData Configurator",
+  "type": 4,
   "vendor": "BMW",
   "aliases": [
     "BMW CarData Discovery"
@@ -10,5 +10,5 @@
   "parentRequirements": [],
   "childRequirements": [],
   "implemented": [],
-  "prefix": "BMWDiscovery"
+  "prefix": "BMWConfigurator"
 }

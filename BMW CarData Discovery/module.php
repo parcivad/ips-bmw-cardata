@@ -56,7 +56,8 @@ class BMWCarDataDiscovery extends IPSModuleStrict {
         ];
 
         $code_challenge = bin2hex(random_bytes(2));
-        setCodeVerifier(hash('sha256', $code_challenge));
+        $this->WriteAttributeString("codeVerifier", hash('sha256', $code_challenge));
+        //TODO use it fr
 
         $params = [
             "client_id" => $this->ReadPropertyString("clientId"),
@@ -112,7 +113,7 @@ class BMWCarDataDiscovery extends IPSModuleStrict {
             "client_id" => $this->ReadPropertyString("clientId"),
             "device_code" => $this->ReadAttributeString("deviceCode"),
             "grant_type" => "urn:ietf:params:oauth:grant-type:device_code",
-            "code_verifier" => "Lc-kVofs3uj2Aj5Yrpd8X8Sa0N6tGmp4VIjflKSbFSQ"  //getCodeVerifier()
+            "code_verifier" => "Lc-kVofs3uj2Aj5Yrpd8X8Sa0N6tGmp4VIjflKSbFSQ"
         ];
         $params = http_build_query($params);
 
