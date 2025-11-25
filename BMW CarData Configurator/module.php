@@ -156,6 +156,10 @@ class BMWCarDataConfigurator extends IPSModuleStrict {
         $this->ReloadForm();
     }
 
+    public function testSendMethod() {
+        IPS_LogMessage("Send Test Method result: ", $this->SendDataToChildren('{"test": "testData"}'));
+    }
+
     private function apiCall(string $endpoint): array {
         // TODO token expires and refresh
 
