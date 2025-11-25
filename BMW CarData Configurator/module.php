@@ -198,6 +198,13 @@ class BMWCarDataConfigurator extends IPSModuleStrict {
             $configList[] = [
                 "vin" => $vehicle["vin"],
                 "createdAt" => $vehicle["mappedSince"],
+                "instanceID" => 0,
+                "create" => [
+                    "moduleID" => "{E147D4C3-A21A-F7C9-EE09-F54D5FD91B86}",
+                    "configuration"=> [
+                        "vin" => $vehicle["vin"],
+                    ]
+                ]
             ];
         }
 
@@ -330,7 +337,7 @@ class BMWCarDataConfigurator extends IPSModuleStrict {
                 "name" => "BMWCarDataDiscovery",
                 "caption" => "BMW CarData Fahrzeuge",
                 "rowCount" => 4,
-                "add" => false,
+                "add" => true,
                 "delete" => true,
                 "columns" => [
                     [
