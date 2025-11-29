@@ -6,7 +6,12 @@ class BMWCarDataVehicle extends IPSModuleStrict {
         // Don't delete this line
         parent::Create();
 
+        $this->GetCompatibleParents();
+
         $this->RegisterPropertyString("vin", null);
+
+        $this->RegisterAttributeString("basicData", null);
+        $this->RegisterAttributeString("image", null);
     }
 
     public function ApplyChanges(): void
@@ -16,46 +21,30 @@ class BMWCarDataVehicle extends IPSModuleStrict {
     }
 
     public function GetCompatibleParents() {
-
-        return '{"type": "require", "moduleIDs": ["{1FD5C2E8-43BD-F09C-CAC5-4A1E7CE08F24}"]}';
-
+        return '{"type": "require", "moduleIDs": ["{C23F025F-A4CE-7F31-CE14-0AE225778FE7}"]}';
     }
 
     public function testSendMethod() {
-        $result = $this->SendDataToParent(json_encode([
-                "DataID" => "{F45D0739-5352-346E-C3FB-BF292A917942}",
-                "Buffer" => utf8_decode("test")
+        $response = $this->SendDataToParent(json_encode([
+                "DataID" => "{3F5C23F7-AC9B-6BFE-C27C-3336F73568B4}",
+                "method" => "GET",
+                "accept" => "*",
+                "endpoint" => "/customers/vehicles/{$this->ReadPropertyString("vin")}/image",
+                "body" => ""
             ]
         ));
-
-        IPS_LogMessage("Send from Vehicle, received: ", utf8_decode($result->Buffer));
+        $this->WriteAttributeString("image", "data:image/jpeg;base64, " . base64_encode($response));
+        IPS_LogMessage("image", "data:image/jpeg;base64, " . base64_encode($response));
     }
 
-    public function ReceiveData(string $JSONString): string {
-        $data = json_decode($JSONString, true);
-        //IPS_LogMessage("ReceiveData Vehicle", $JSONString);
-
-        return "OK von Vehicle: " . $this->InstanceID;
-    }
-
-
-    private function FormElements(): array {
-        return [
-            [
-                "type" => "RowLayout",
-                "items" => [
-                    [
-                        "type" => "ColumnLayout",
-                        "items" => [
-                            //TODO: Add Vehicle Information
-                        ]
-                    ],
-                    [
-                        "type" => "Image",
-                        "image" => "" // TODO: Data image of the vehicle
-                    ]
+    public function GetConfigurationForm(): string {
+        return json_encode([
+            'elements' => [
+                [
+                    "type" => "Image",
+                    "image" => $this->ReadAttributeString("image")
                 ]
             ]
-        ];
+        ]);
     }
 }
