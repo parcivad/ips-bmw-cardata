@@ -1,6 +1,6 @@
 <?php
 
-class BMWCarDataConfigurator extends IPSModuleStrict {
+class BMWCarDataCommunicator extends IPSModuleStrict {
 
     public function Create(): void {
         // Don't delete this line

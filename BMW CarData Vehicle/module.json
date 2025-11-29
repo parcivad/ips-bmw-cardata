@@ -8,11 +8,11 @@
   ],
   "url": "https://github.com/parcivad/ips-bmw-cardata",
   "parentRequirements": [
-    "{F45D0739-5352-346E-C3FB-BF292A917942}"
+    "{3F5C23F7-AC9B-6BFE-C27C-3336F73568B4}"
   ],
   "childRequirements": [],
   "implemented": [
-    "{926E93DD-3F17-087E-31DC-97E0A35C8425}"
+    "{C23F025F-A4CE-7F31-CE14-0AE225778FE7}"
   ],
   "prefix": "BMW"
 }

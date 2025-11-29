@@ -6,8 +6,6 @@ class BMWCarDataVehicle extends IPSModuleStrict {
         // Don't delete this line
         parent::Create();
 
-        $this->ForceParent("{1FD5C2E8-43BD-F09C-CAC5-4A1E7CE08F24}");
-
         $this->RegisterPropertyString("vin", null);
     }
 
@@ -29,6 +27,7 @@ class BMWCarDataVehicle extends IPSModuleStrict {
                 "Buffer" => utf8_decode("test")
             ]
         ));
+
         IPS_LogMessage("Send from Vehicle, received: ", utf8_decode($result->Buffer));
     }
 
