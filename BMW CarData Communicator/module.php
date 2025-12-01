@@ -49,7 +49,6 @@ class BMWCarDataCommunicator extends IPSModuleStrict {
         // check if token is expired
         if ($this->ReadAttributeString("refreshToken") != null
             && $this->ReadAttributeInteger("carDataExpiresAt") <= time()) {
-            IPS_LogMessage("test", "getting refresh");
             $this->refreshToken();
         }
 
@@ -200,7 +199,7 @@ class BMWCarDataCommunicator extends IPSModuleStrict {
         $params = [
             "client_id" => $this->ReadPropertyString("clientId"),
             "grant_type" => "refresh_token",
-            "code_verifier" => $this->ReadAttributeString("refreshToken"),
+            "refresh_token" => $this->ReadAttributeString("refreshToken")
         ];
         $params = http_build_query($params);
 
@@ -254,14 +253,25 @@ class BMWCarDataCommunicator extends IPSModuleStrict {
         if ($this->GetStatus() != 102) return $configList;
 
         foreach ($response as $vehicle) {
+            $vin = $vehicle["vin"];
+            $moduleGUID = "{E147D4C3-A21A-F7C9-EE09-F54D5FD91B86}";
+
+            $id = 0;
+            $instanceIDs = IPS_GetInstanceListByModuleID($moduleGUID);
+            foreach ($instanceIDs as $instanceID) {
+                if (IPS_GetProperty($instanceID, 'vin') == $vin) {
+                    $id = $instanceID;
+                }
+            }
+
             $configList[] = [
-                "vin" => $vehicle["vin"],
+                "vin" => $vin,
                 "createdAt" => $vehicle["mappedSince"],
-                "instanceID" => 0,
+                "instanceID" => $id,
                 "create" => [
-                    "moduleID" => "{E147D4C3-A21A-F7C9-EE09-F54D5FD91B86}",
+                    "moduleID" => $moduleGUID,
                     "configuration"=> [
-                        "vin" => $vehicle["vin"],
+                        "vin" => $vin
                     ]
                 ]
             ];
@@ -380,7 +390,7 @@ class BMWCarDataCommunicator extends IPSModuleStrict {
                     "name" => "BMWCarDataDiscovery",
                     "caption" => "BMW CarData Fahrzeuge",
                     "rowCount" => 4,
-                    "add" => true,
+                    "add" => false,
                     "delete" => true,
                     "columns" => [
                         [
@@ -404,14 +414,14 @@ class BMWCarDataCommunicator extends IPSModuleStrict {
                 ]
             ],
             "status" => [
-                ["code" => "400", "icon" => "error", "caption" => "Bad request"],
-                ["code" => "401", "icon" => "error", "caption" => "Value of a input parameter is invalid"],
-                ["code" => "402", "icon" => "error", "caption" => "Telematic key can not be found"],
-                ["code" => "403", "icon" => "inactive", "caption" => "Authentication Failed"],
-                ["code" => "404", "icon" => "error", "caption" => "Not Found"],
-                ["code" => "429", "icon" => "inactive", "caption" => "Daily API rate limit, no action needed"],
-                ["code" => "500", "icon" => "inactive", "caption" => "A permanent server error occurred on BMWGroup endpoint!"],
-                ["code" => "503", "icon" => "inactive", "caption" => "A temporary server error occurred on BMWGroup endpoint!"]
+                ["code" => 400, "icon" => "error", "caption" => "Bad request"],
+                ["code" => 401, "icon" => "error", "caption" => "Value of a input parameter is invalid"],
+                ["code" => 402, "icon" => "error", "caption" => "Telematic key can not be found"],
+                ["code" => 403, "icon" => "inactive", "caption" => "Authentication Failed"],
+                ["code" => 404, "icon" => "error", "caption" => "Not Found"],
+                ["code" => 429, "icon" => "inactive", "caption" => "Daily API rate limit, no action needed"],
+                ["code" => 500, "icon" => "inactive", "caption" => "A permanent server error occurred on BMWGroup endpoint!"],
+                ["code" => 503, "icon" => "inactive", "caption" => "A temporary server error occurred on BMWGroup endpoint!"]
             ]
         ]);
     }
