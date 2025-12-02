@@ -1,5 +1,7 @@
 <?php
 
+const DEVICE_TX = "{3F5C23F7-AC9B-6BFE-C27C-3336F73568B4}";
+
 class BMWCarDataVehicle extends IPSModuleStrict {
 
     public function Create(): void {
@@ -7,6 +9,8 @@ class BMWCarDataVehicle extends IPSModuleStrict {
         parent::Create();
 
         $this->RegisterPropertyString("vin", null);
+        $this->RegisterPropertyString("containerId", null);
+
         $this->RegisterAttributeString("basicData", null);
 
         $this->ConnectParent("{C23F025F-A4CE-7F31-CE14-0AE225778FE7}");
@@ -19,7 +23,7 @@ class BMWCarDataVehicle extends IPSModuleStrict {
 
     public function getBasicData(): array {
         $response = $this->SendDataToParent(json_encode([
-                "DataID" => "{3F5C23F7-AC9B-6BFE-C27C-3336F73568B4}",
+                "DataID" => DEVICE_TX,
                 "method" => "GET",
                 "accept" => "application/json",
                 "endpoint" => "/customers/vehicles/" . $this->ReadPropertyString("vin") . "/basicData",
@@ -28,6 +32,28 @@ class BMWCarDataVehicle extends IPSModuleStrict {
         ));
         $this->WriteAttributeString("basicData", $response);
         return json_decode($response, true);
+    }
+
+    public function getChargingHistory(string $from, string $to): array {
+        return json_decode($this->SendDataToParent(json_encode([
+                "DataID" => DEVICE_TX,
+                "method" => "GET",
+                "accept" => "application/json",
+                "endpoint" => "/customers/vehicles/" . $this->ReadPropertyString("vin") . "/chargingHistory?from=" . $from . "&to=" . $to,
+                "body" => ""
+            ]
+        )), true);
+    }
+
+    public function getLocationBasedSettings(): array {
+        return json_decode($this->SendDataToParent(json_encode([
+                "DataID" => DEVICE_TX,
+                "method" => "GET",
+                "accept" => "application/json",
+                "endpoint" => "/customers/vehicles/" . $this->ReadPropertyString("vin") . "/locationBasedChargingSettings",
+                "body" => ""
+            ]
+        )), true);
     }
 
     public function GetConfigurationForm(): string {
@@ -75,7 +101,7 @@ class BMWCarDataVehicle extends IPSModuleStrict {
                                 [
                                     "caption" => "Construction Date",
                                     "name" => "constructionDate",
-                                    "width" => "auto"
+                                    "width" => "250px"
                                 ]
                             ],
                             "values" => [

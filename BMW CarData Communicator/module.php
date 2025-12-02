@@ -15,6 +15,7 @@ class BMWCarDataCommunicator extends IPSModuleStrict {
         $this->RegisterAttributeString("verificationUriComplete", null);
         $this->RegisterAttributeString("verificationUri", null);
         $this->RegisterAttributeInteger("deviceCodeExpiresAt", null);
+
         $this->RegisterAttributeString("gcid", null);
         $this->RegisterAttributeString("tokenType", null);
         $this->RegisterAttributeString("accessToken", null);
