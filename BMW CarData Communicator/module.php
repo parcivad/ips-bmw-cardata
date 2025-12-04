@@ -8,11 +8,12 @@ class BMWCarDataCommunicator extends IPSModuleStrict {
 
         $this->RegisterPropertyString("clientId", null);
 
+        $this->RegisterAttributeString("containerId", null);
+
         $this->RegisterAttributeString("codeVerifier", null);
         $this->RegisterAttributeString("userCode", null);
         $this->RegisterAttributeString("deviceCode", null);
         $this->RegisterAttributeString("interval", null);
-        $this->RegisterAttributeString("verificationUriComplete", null);
         $this->RegisterAttributeString("verificationUri", null);
         $this->RegisterAttributeInteger("deviceCodeExpiresAt", null);
 
@@ -40,7 +41,6 @@ class BMWCarDataCommunicator extends IPSModuleStrict {
             $this->WriteAttributeString("userCode", null);
             $this->WriteAttributeString("deviceCode", null);
             $this->WriteAttributeString("interval", null);
-            $this->WriteAttributeString("verificationUriComplete", null);
             $this->WriteAttributeString("verificationUri", null);
             $this->WriteAttributeInteger("deviceCodeExpiresAt", null);
         }
@@ -128,11 +128,10 @@ class BMWCarDataCommunicator extends IPSModuleStrict {
         $this->WriteAttributeString("userCode", $query["user_code"]);
         $this->WriteAttributeString("deviceCode", $query["device_code"]);
         $this->WriteAttributeString("interval", $query["interval"]);
-        $this->WriteAttributeString("verificationUriComplete", $query["verification_uri_complete"]);
         $this->WriteAttributeString("verificationUri", $query["verification_uri"]);
         $this->WriteAttributeInteger("deviceCodeExpiresAt", time() + $query["expires_in"]);
 
-        echo $query["verification_uri_complete"];
+        echo $query["verification_uri"] . "?user_code=" . $query["user_code"];
         $this->ReloadForm();
     }
 
@@ -184,7 +183,6 @@ class BMWCarDataCommunicator extends IPSModuleStrict {
         $this->WriteAttributeString("userCode", null);
         $this->WriteAttributeString("deviceCode", null);
         $this->WriteAttributeString("interval", null);
-        $this->WriteAttributeString("verificationUriComplete", null);
         $this->WriteAttributeString("verificationUri", null);
         $this->WriteAttributeInteger("deviceCodeExpiresAt", null);
 
@@ -232,6 +230,325 @@ class BMWCarDataCommunicator extends IPSModuleStrict {
         $this->WriteAttributeInteger("carDataExpiresAt", time() + $query["expires_in"]);
     }
 
+    private function getContainer(): void {
+        // check for existing telematic container because of limitation
+        $containers = json_decode($this->ForwardData(json_encode([
+                "DataID" => "{3F5C23F7-AC9B-6BFE-C27C-3336F73568B4}",
+                "method" => "GET",
+                "accept" => "application/json",
+                "endpoint" => "/customers/containers",
+                "body" => json_encode()
+            ]
+        )), false)["containers"];
+
+        foreach ($containers as $container) {
+            if ($container["name"] == "ips-bmw-cardata") {
+                $this->WriteAttributeString("containerId", $container["containerId"]);
+                return;
+            }
+        }
+
+        // Create IPS telematic Container
+        $container = json_decode($this->ForwardData(json_encode([
+                "DataID" => "{3F5C23F7-AC9B-6BFE-C27C-3336F73568B4}",
+                "method" => "POST",
+                "accept" => "application/json",
+                "endpoint" => "/customers/containers",
+                "body" => json_encode([
+                    "name" => "ips-bmw-cardata",
+                    "purpose" => "IPS BMW Cardata public api module",
+                    "technicalDescriptors" => [
+                        "vehicle.vehicle.antiTheftAlarmSystem.alarm.activationTime",
+                        "vehicle.vehicle.antiTheftAlarmSystem.alarm.armStatus",
+                        "vehicle.vehicle.antiTheftAlarmSystem.alarm.isOn",
+                        "vehicle.channel.teleservice.status",
+                        "vehicle.electricalSystem.battery.voltage",
+                        "vehicle.drivetrain.electricEngine.charging.profile.mode",
+                        "vehicle.cabin.convertible.roofRetractableStatus",
+                        "vehicle.drivetrain.internalCombustionEngine.engine.ect",
+                        "vehicle.channel.ngtp.timeVehicle",
+                        "vehicle.status.serviceTime.inspectionDateLegal",
+                        "vehicle.vehicle.deepSleepModeActive",
+                        "vehicle.cabin.hvac.preconditioning.configuration.defaultSettings.seat.row1.driverSide.cooling",
+                        "vehicle.cabin.hvac.preconditioning.configuration.defaultSettings.seat.row1.driverSide.heating",
+                        "vehicle.cabin.hvac.preconditioning.configuration.defaultSettings.seat.row1.passengerSide.cooling",
+                        "vehicle.cabin.hvac.preconditioning.configuration.defaultSettings.seat.row1.passengerSide.heating",
+                        "vehicle.cabin.hvac.preconditioning.configuration.defaultSettings.seat.row2.driverSide.cooling",
+                        "vehicle.cabin.hvac.preconditioning.configuration.defaultSettings.seat.row2.driverSide.heating",
+                        "vehicle.cabin.hvac.preconditioning.configuration.defaultSettings.seat.row2.passengerSide.cooling",
+                        "vehicle.cabin.hvac.preconditioning.configuration.defaultSettings.seat.row2.passengerSide.heating",
+                        "vehicle.cabin.hvac.preconditioning.configuration.defaultSettings.steeringWheel.heating",
+                        "vehicle.cabin.hvac.preconditioning.configuration.defaultSettings.seat.row3.driverSide.cooling",
+                        "vehicle.cabin.hvac.preconditioning.configuration.defaultSettings.seat.row3.driverSide.heating",
+                        "vehicle.cabin.hvac.preconditioning.configuration.defaultSettings.seat.row3.passengerSide.cooling",
+                        "vehicle.cabin.hvac.preconditioning.configuration.defaultSettings.seat.row3.passengerSide.heating",
+                        "vehicle.cabin.hvac.preconditioning.configuration.directStartSettings.targetTemperature",
+                        "vehicle.cabin.infotainment.displayUnit.distance",
+                        "vehicle.status.serviceDistance.yellow",
+                        "vehicle.cabin.infotainment.navigation.destinationSet.distance",
+                        "vehicle.status.serviceDistance.next",
+                        "vehicle.cabin.door.status",
+                        "vehicle.cabin.hvac.preconditioning.status.isExteriorMirrorHeatingActive",
+                        "vehicle.electronicControlUnit.diagnosticTroubleCodes.raw",
+                        "vehicle.cabin.door.row1.driver.position",
+                        "vehicle.cabin.seat.row1.driverSide.cooling",
+                        "vehicle.cabin.hvac.preconditioning.configuration.directStartSettings.seat.row1.driverSide.cooling",
+                        "vehicle.cabin.hvac.preconditioning.configuration.directStartSettings.seat.row1.driverSide.heating",
+                        "vehicle.cabin.seat.row1.driverSide.heating",
+                        "vehicle.cabin.hvac.preconditioning.configuration.directStartSettings.seat.row1.passengerSide.cooling",
+                        "vehicle.cabin.hvac.preconditioning.configuration.directStartSettings.seat.row1.passengerSide.heating",
+                        "vehicle.cabin.door.row1.passenger.position",
+                        "vehicle.cabin.seat.row1.passengerSide.cooling",
+                        "vehicle.cabin.seat.row1.passengerSide.heating",
+                        "vehicle.electricalSystem.battery.serviceDemand.replace",
+                        "vehicle.cabin.hvac.statusAirPurification",
+                        "vehicle.channel.teleservice.lastBreakdownCallTime",
+                        "vehicle.channel.teleservice.lastManualCallTime",
+                        "vehicle.electricalSystem.battery.stateOfCharge",
+                        "vehicle.electricalSystem.battery.stateOfChargePlausibility",
+                        "vehicle.cabin.infotainment.navigation.pointsOfInterests.max",
+                        "vehicle.vehicle.travelledDistance",
+                        "vehicle.cabin.infotainment.isMobilePhoneConnected",
+                        "vehicle.isMoving",
+                        "vehicle.cabin.infotainment.navigation.destinationSet.latitude",
+                        "vehicle.cabin.infotainment.navigation.destinationSet.longitude",
+                        "vehicle.electricalSystem.battery.serviceDemand.recharge",
+                        "vehicle.status.conditionBasedServicesCount",
+                        "vehicle.cabin.infotainment.navigation.pointsOfInterests.available",
+                        "vehicle.cabin.infotainment.navigation.currentLocation.heading",
+                        "vehicle.vehicle.preConditioning.isRemoteEngineStartAllowed",
+                        "vehicle.cabin.hvac.preconditioning.status.comfortState",
+                        "vehicle.cabin.hvac.preconditioning.status.progress",
+                        "vehicle.cabin.hvac.preconditioning.status.remainingRunningTime",
+                        "vehicle.vehicle.preConditioning.activity",
+                        "vehicle.sevice.preferredSevicePartner",
+                        "vehicle.cabin.hvac.preconditioning.status.rearDefrostActive",
+                        "vehicle.cabin.hvac.preconditioning.configuration.directStartSettings.seat.row2.driverSide.cooling",
+                        "vehicle.cabin.hvac.preconditioning.configuration.directStartSettings.seat.row2.driverSide.heating",
+                        "vehicle.cabin.door.row2.driver.position",
+                        "vehicle.cabin.seat.row2.driverSide.cooling",
+                        "vehicle.cabin.seat.row2.driverSide.heating",
+                        "vehicle.cabin.hvac.preconditioning.configuration.directStartSettings.seat.row2.passengerSide.cooling",
+                        "vehicle.cabin.hvac.preconditioning.configuration.directStartSettings.seat.row2.passengerSide.heating",
+                        "vehicle.cabin.door.row2.passenger.position",
+                        "vehicle.cabin.seat.row2.passengerSide.cooling",
+                        "vehicle.cabin.seat.row2.passengerSide.heating",
+                        "vehicle.body.trunk.window.isOpen",
+                        "vehicle.vehicle.preConditioning.error",
+                        "vehicle.vehicle.preConditioning.remainingTime",
+                        "vehicle.cabin.infotainment.navigation.remainingRange",
+                        "vehicle.cabin.hvac.preconditioning.configuration.isRemoteEngineStartDisclaimer",
+                        "vehicle.serviceDemand.defect.id",
+                        "vehicle.drivetrain.engine.isActive",
+                        "vehicle.channel.ista.obfcm.lastTransmissionStatus",
+                        "vehicle.body.trunk.isOpen",
+                        "vehicle.cabin.convertible.roofStatus",
+                        "vehicle.cabin.door.lock.status",
+                        "vehicle.drivetrain.engine.isIgnitionOn",
+                        "vehicle.cabin.door.row1.driver.isOpen",
+                        "vehicle.cabin.window.row1.driver.status",
+                        "vehicle.cabin.door.row1.passenger.isOpen",
+                        "vehicle.cabin.window.row1.passenger.status",
+                        "vehicle.body.hood.isOpen",
+                        "vehicle.body.lights.isRunningOn",
+                        "vehicle.cabin.door.row2.driver.isOpen",
+                        "vehicle.cabin.window.row2.driver.status",
+                        "vehicle.cabin.door.row2.passenger.isOpen",
+                        "vehicle.cabin.window.row2.passenger.status",
+                        "vehicle.cabin.sunroof.status",
+                        "vehicle.cabin.hvac.preconditioning.configuration.directStartSettings.steeringWheel.heating",
+                        "vehicle.cabin.steeringWheel.heating",
+                        "vehicle.cabin.sunroof.overallStatus",
+                        "vehicle.cabin.sunroof.relativePosition",
+                        "vehicle.cabin.sunroof.shade.position",
+                        "vehicle.drivetrain.fuelSystem.remainingFuel",
+                        "vehicle.drivetrain.fuelSystem.level",
+                        "vehicle.cabin.hvac.preconditioning.configuration.defaultSettings.targetTemperature",
+                        "vehicle.cabin.hvac.preconditioning.configuration.directStartSettings.seat.row3.driverSide.cooling",
+                        "vehicle.cabin.hvac.preconditioning.configuration.directStartSettings.seat.row3.driverSide.heating",
+                        "vehicle.cabin.seat.row3.driverSide.cooling",
+                        "vehicle.cabin.seat.row3.driverSide.heating",
+                        "vehicle.cabin.hvac.preconditioning.configuration.directStartSettings.seat.row3.passengerSide.cooling",
+                        "vehicle.cabin.hvac.preconditioning.configuration.directStartSettings.seat.row3.passengerSide.heating",
+                        "vehicle.cabin.seat.row3.passengerSide.cooling",
+                        "vehicle.cabin.seat.row3.passengerSide.heating",
+                        "vehicle.cabin.sunroof.tiltStatus",
+                        "vehicle.status.serviceTime.hUandAuServiceYellow",
+                        "vehicle.status.serviceTime.yellow",
+                        "vehicle.cabin.infotainment.navigation.destinationSet.arrivalTime",
+                        "vehicle.vehicle.timeSetting",
+                        "vehicle.body.trunk.door.isOpen",
+                        "vehicle.body.trunk.left.door.isOpen",
+                        "vehicle.body.trunk.isLocked",
+                        "vehicle.body.trunk.lower.door.isOpen",
+                        "vehicle.body.trunk.right.door.isOpen",
+                        "vehicle.body.trunk.upper.door.isOpen",
+                        "vehicle.vehicle.preConditioning.isRemoteEngineRunning",
+                        "vehicle.cabin.infotainment.navigation.currentLocation.altitude",
+                        "vehicle.cabin.infotainment.navigation.currentLocation.latitude",
+                        "vehicle.cabin.infotainment.navigation.currentLocation.longitude",
+                        "vehicle.status.conditionBasedServicesAverageDistancePerDay",
+                        "vehicle.vehicle.averageWeeklyDistanceShortTerm",
+                        "vehicle.vehicle.averageWeeklyDistanceLongTerm",
+                        "vehicle.status.checkControlMessages",
+                        "vehicle.status.conditionBasedServices",
+                        "vehicle.privacySettings.dataCollection.regulations.obfcm",
+                        "vehicle.drivetrain.lastRemainingRange",
+                        "vehicle.drivetrain.fuelSystem.consumptionOverLifeTime.inChargeIncreasing.referenceDistance",
+                        "vehicle.drivetrain.fuelSystem.consumptionOverLifeTime.inChargeDepleting.referenceDistanceEngineOn",
+                        "vehicle.drivetrain.fuelSystem.consumptionOverLifeTime.inChargeDepleting.referenceDistanceEngineOff",
+                        "vehicle.drivetrain.fuelSystem.consumptionOverLifeTime.overall.referenceDistance",
+                        "vehicle.drivetrain.fuelSystem.consumptionOverLifeTime.inChargeIncreasing.fuel",
+                        "vehicle.drivetrain.fuelSystem.consumptionOverLifeTime.inChargeDepleting.fuel",
+                        "vehicle.vehicle.speedRange.lowerBound",
+                        "vehicle.vehicle.speedRange.upperBound",
+                        "vehicle.drivetrain.fuelSystem.consumptionOverLifeTime.overall.fuel",
+                        "vehicle.channel.teleservice.lastAutomaticServiceCallTime",
+                        "vehicle.channel.teleservice.lastTeleserviceReportTime",
+                        "vehicle.electricalSystem.battery48V.stateOfHealth.displayed",
+                        "vehicle.drivetrain.electricEngine.charging.acAmpere",
+                        "vehicle.drivetrain.electricEngine.charging.acRestriction.isChosen",
+                        "vehicle.drivetrain.electricEngine.charging.acRestriction.factor",
+                        "vehicle.drivetrain.electricEngine.charging.acVoltage",
+                        "vehicle.powertrain.electric.battery.charging.acousticLimit",
+                        "vehicle.trip.segment.accumulated.drivetrain.transmission.setting.fractionDriveEcoPro",
+                        "vehicle.trip.segment.accumulated.drivetrain.transmission.setting.fractionDriveEcoProPlus",
+                        "vehicle.powertrain.electric.battery.preconditioning.automaticMode.statusFeedback",
+                        "vehicle.vehicle.avgAuxPower",
+                        "vehicle.drivetrain.avgElectricRangeConsumption",
+                        "vehicle.vehicle.avgSpeed",
+                        "vehicle.powertrain.electric.battery.charging.batteryCarePersisted.isPreservingChargingMode",
+                        "vehicle.powertrain.electric.battery.charging.batteryCarePersisted.isActive",
+                        "vehicle.powertrain.tractionBattery.charging.port.anyPosition.flap.isAutomaticOpenAndCloseActive",
+                        "vehicle.powertrain.tractionBattery.charging.port.anyPosition.flap.isOpen",
+                        "vehicle.powertrain.tractionBattery.charging.port.anyPosition.isPlugged",
+                        "vehicle.powertrain.tractionBattery.charging.port.frontLeft.flap.isAutomaticOpenAndCloseActive",
+                        "vehicle.powertrain.tractionBattery.charging.port.frontLeft.flap.isOpen",
+                        "vehicle.powertrain.tractionBattery.charging.port.frontLeft.isPlugged",
+                        "vehicle.powertrain.tractionBattery.charging.port.frontMiddle.flap.isAutomaticOpenAndCloseActive",
+                        "vehicle.powertrain.tractionBattery.charging.port.frontMiddle.flap.isOpen",
+                        "vehicle.powertrain.tractionBattery.charging.port.frontMiddle.isPlugged",
+                        "vehicle.powertrain.tractionBattery.charging.port.frontRight.flap.isAutomaticOpenAndCloseActive",
+                        "vehicle.powertrain.tractionBattery.charging.port.frontRight.flap.isOpen",
+                        "vehicle.powertrain.tractionBattery.charging.port.frontRight.isPlugged",
+                        "vehicle.powertrain.tractionBattery.charging.port.rearLeft.flap.isAutomaticOpenAndCloseActive",
+                        "vehicle.powertrain.tractionBattery.charging.port.rearLeft.flap.isOpen",
+                        "vehicle.powertrain.tractionBattery.charging.port.rearLeft.isPlugged",
+                        "vehicle.powertrain.tractionBattery.charging.port.rearMiddle.flap.isAutomaticOpenAndCloseActive",
+                        "vehicle.powertrain.tractionBattery.charging.port.rearMiddle.flap.isOpen",
+                        "vehicle.powertrain.tractionBattery.charging.port.rearMiddle.isPlugged",
+                        "vehicle.powertrain.tractionBattery.charging.port.rearRight.flap.isAutomaticOpenAndCloseActive",
+                        "vehicle.powertrain.tractionBattery.charging.port.rearRight.flap.isOpen",
+                        "vehicle.powertrain.tractionBattery.charging.port.rearRight.isPlugged",
+                        "vehicle.powertrain.electric.battery.biDirectionalCharging.availability",
+                        "vehicle.powertrain.electric.battery.charging.cableCheckVoltage",
+                        "vehicle.drivetrain.electricEngine.charging.timeToFullyCharged",
+                        "vehicle.drivetrain.electricEngine.charging.authentication.status",
+                        "vehicle.powertrain.electric.battery.charging.authenticationStatus",
+                        "vehicle.drivetrain.electricEngine.charging.connectorStatus",
+                        "vehicle.powertrain.electric.battery.charging.acLimit.selected",
+                        "vehicle.drivetrain.electricEngine.charging.method",
+                        "vehicle.drivetrain.electricEngine.charging.chargingMode",
+                        "vehicle.drivetrain.electricEngine.charging.modeDeviation",
+                        "vehicle.body.chargingPort.combinedStatus",
+                        "vehicle.body.chargingPort.lockedStatus",
+                        "vehicle.body.chargingPort.plugEventId",
+                        "vehicle.body.chargingPort.statusClearText",
+                        "vehicle.powertrain.electric.battery.charging.power",
+                        "vehicle.drivetrain.electricEngine.charging.connectionType",
+                        "vehicle.drivetrain.electricEngine.charging.phaseNumber",
+                        "vehicle.drivetrain.electricEngine.charging.profile.preference",
+                        "vehicle.body.chargingPort.isoSessionId",
+                        "vehicle.drivetrain.electricEngine.charging.status",
+                        "vehicle.trip.segment.end.drivetrain.batteryManagement.hvSoc",
+                        "vehicle.drivetrain.batteryManagement.header",
+                        "vehicle.powertrain.electric.chargingDuration.displayControl",
+                        "vehicle.drivetrain.electricEngine.charging.profile.timerType",
+                        "vehicle.drivetrain.electricEngine.charging.windowSelection",
+                        "vehicle.drivetrain.electricEngine.charging.profile.climatizationActive",
+                        "vehicle.drivetrain.electricEngine.charging.level",
+                        "vehicle.powertrain.electric.battery.charging.dcChargingModeActive",
+                        "vehicle.powertrain.electric.departureTime.displayControl",
+                        "vehicle.drivetrain.electricEngine.charging.profile.settings.biDirectionalCharging.departureTimeRelevant",
+                        "vehicle.drivetrain.electricEngine.charging.profile.settings.biDirectionalCharging.dischargeAllowed",
+                        "vehicle.trip.segment.accumulated.acceleration.starsAverage",
+                        "vehicle.trip.segment.accumulated.chassis.brake.starsAverage",
+                        "vehicle.trip.segment.accumulated.drivetrain.electricEngine.energyConsumptionComfort",
+                        "vehicle.trip.segment.accumulated.drivetrain.transmission.setting.fractionDriveElectric",
+                        "vehicle.drivetrain.batteryManagement.maxEnergy",
+                        "vehicle.trip.segment.accumulated.drivetrain.electricEngine.recuperationTotal",
+                        "vehicle.drivetrain.electricEngine.charging.smeEnergyDeltaFullyCharged",
+                        "vehicle.drivetrain.electricEngine.remainingElectricRange",
+                        "vehicle.drivetrain.electricEngine.charging.timeRemaining",
+                        "vehicle.drivetrain.totalRemainingRange",
+                        "vehicle.powertrain.electric.battery.stateOfHealth.displayed",
+                        "vehicle.drivetrain.electricEngine.charging.hvStatus",
+                        "vehicle.drivetrain.electricEngine.charging.isImmediateChargingSystemReason",
+                        "vehicle.drivetrain.electricEngine.charging.isSingleImmediateCharging",
+                        "vehicle.drivetrain.electricEngine.charging.lastChargingReason",
+                        "vehicle.drivetrain.electricEngine.charging.lastChargingResult",
+                        "vehicle.body.chargingPort.isHospitalityActive",
+                        "vehicle.body.flap.isPermanentlyUnlocked",
+                        "vehicle.powertrain.electric.battery.preconditioning.manualMode.statusFeedback",
+                        "vehicle.powertrain.electric.battery.charging.acLimit.max",
+                        "vehicle.trip.segment.end.travelledDistance",
+                        "vehicle.powertrain.electric.battery.charging.acLimit.min",
+                        "vehicle.drivetrain.electricEngine.charging.consumptionOverLifeTime.overall.referenceDistance",
+                        "vehicle.powertrain.electric.battery.preconditioning.state",
+                        "vehicle.drivetrain.electricEngine.charging.profile.isRcpConfigComplete",
+                        "vehicle.drivetrain.electricEngine.charging.reasonChargingEnd",
+                        "vehicle.drivetrain.electricEngine.charging.hvpmFinishReason",
+                        "vehicle.powertrain.electric.battery.charging.batteryCarePersisted.isReducedTargetSoe",
+                        "vehicle.drivetrain.electricEngine.charging.consumptionOverLifeTime.engineOn.referenceDistance",
+                        "vehicle.drivetrain.electricEngine.charging.consumptionOverLifeTime.engineOff.referenceDistance",
+                        "vehicle.powertrain.electric.range.target",
+                        "vehicle.drivetrain.electricEngine.kombiRemainingElectricRange",
+                        "vehicle.drivetrain.electricEngine.charging.routeOptimizedChargingStatus",
+                        "vehicle.powertrain.electric.battery.charging.preferenceSmartCharging",
+                        "vehicle.body.flap.isLocked",
+                        "vehicle.powertrain.electric.battery.charging.acLimit.isActive",
+                        "vehicle.body.chargingPort.status",
+                        "vehicle.body.chargingPort.dcStatus",
+                        "vehicle.powertrain.electric.battery.stateOfCharge.target",
+                        "vehicle.powertrain.electric.battery.stateOfCharge.targetMin",
+                        "vehicle.powertrain.electric.battery.stateOfCharge.targetSoCForProfessionalMode",
+                        "vehicle.trip.segment.end.time",
+                        "vehicle.drivetrain.electricEngine.charging.consumptionOverLifeTime.engineOn.gridEnergy",
+                        "vehicle.drivetrain.electricEngine.charging.consumptionOverLifeTime.engineOff.gridEnergy",
+                        "vehicle.drivetrain.electricEngine.charging.consumptionOverLifeTime.overall.gridEnergy",
+                        "vehicle.cabin.climate.timers.overwriteTimer.action",
+                        "vehicle.cabin.climate.timers.overwriteTimer.hour",
+                        "vehicle.cabin.climate.timers.overwriteTimer.minute",
+                        "vehicle.powertrain.electric.range.displayControl",
+                        "vehicle.cabin.infotainment.hmi.distanceUnit",
+                        "vehicle.cabin.infotainment.navigation.currentLocation.fixStatus",
+                        "vehicle.cabin.infotainment.navigation.currentLocation.numberOfSatellites",
+                        "vehicle.cabin.climate.timers.weekdaysTimer1.action",
+                        "vehicle.cabin.climate.timers.weekdaysTimer1.hour",
+                        "vehicle.cabin.climate.timers.weekdaysTimer1.minute",
+                        "vehicle.cabin.climate.timers.weekdaysTimer2.action",
+                        "vehicle.cabin.climate.timers.weekdaysTimer2.hour",
+                        "vehicle.cabin.climate.timers.weekdaysTimer2.minute",
+                        "vehicle.chassis.axle.row1.wheel.left.tire.pressure",
+                        "vehicle.chassis.axle.row1.wheel.right.tire.pressure",
+                        "vehicle.chassis.axle.row2.wheel.left.tire.pressure",
+                        "vehicle.chassis.axle.row2.wheel.right.tire.pressure",
+                        "vehicle.chassis.axle.row1.wheel.left.tire.pressureTarget",
+                        "vehicle.chassis.axle.row1.wheel.right.tire.pressureTarget",
+                        "vehicle.chassis.axle.row2.wheel.left.tire.pressureTarget",
+                        "vehicle.chassis.axle.row2.wheel.right.tire.pressureTarget",
+                        "vehicle.chassis.axle.row1.wheel.left.tire.temperature",
+                        "vehicle.chassis.axle.row1.wheel.right.tire.temperature",
+                        "vehicle.chassis.axle.row2.wheel.left.tire.temperature",
+                        "vehicle.chassis.axle.row2.wheel.right.tire.temperature",
+                        "vehicle.vehicleIdentification.connectedDriveContractList"
+                    ]
+                ])
+            ]
+        )), true);
+        $this->WriteAttributeString("containerId", $container["containerId"]);
+    }
+
     private function getVehicleMapping(): array {
         if (empty($this->ReadPropertyString("clientId")))
             return [[ "vin" => "Follow Step 1 Instructions"]];
@@ -253,6 +570,7 @@ class BMWCarDataCommunicator extends IPSModuleStrict {
 
         if ($this->GetStatus() != 102) return $configList;
 
+        $containerId = $this->ReadAttributeString("containerId");
         foreach ($response as $vehicle) {
             $vin = $vehicle["vin"];
             $moduleGUID = "{E147D4C3-A21A-F7C9-EE09-F54D5FD91B86}";
@@ -272,7 +590,8 @@ class BMWCarDataCommunicator extends IPSModuleStrict {
                 "create" => [
                     "moduleID" => $moduleGUID,
                     "configuration"=> [
-                        "vin" => $vin
+                        "vin" => $vin,
+                        "containerId" => $containerId
                     ]
                 ]
             ];
@@ -282,6 +601,10 @@ class BMWCarDataCommunicator extends IPSModuleStrict {
     }
 
     public function GetConfigurationForm(): string {
+        if ($this->ReadAttributeString("accessToken") != null && $this->ReadAttributeString("containerId") != null) {
+            $this->getContainer();
+        }
+
         return json_encode([
             "elements" => [
                 [
