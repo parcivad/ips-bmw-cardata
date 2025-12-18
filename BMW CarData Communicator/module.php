@@ -3,7 +3,6 @@
 class BMWCarDataCommunicator extends IPSModuleStrict {
 
     public function Create(): void {
-        // Don't delete this line
         parent::Create();
 
         $this->RegisterPropertyString("clientId", null);
@@ -237,9 +236,9 @@ class BMWCarDataCommunicator extends IPSModuleStrict {
                 "method" => "GET",
                 "accept" => "application/json",
                 "endpoint" => "/customers/containers",
-                "body" => json_encode()
+                "body" => ""
             ]
-        )), false)["containers"];
+        )), true)["containers"];
 
         foreach ($containers as $container) {
             if ($container["name"] == "ips-bmw-cardata") {
@@ -601,7 +600,7 @@ class BMWCarDataCommunicator extends IPSModuleStrict {
     }
 
     public function GetConfigurationForm(): string {
-        if ($this->ReadAttributeString("accessToken") != null && $this->ReadAttributeString("containerId") != null) {
+        if ($this->ReadAttributeString("accessToken") != null && $this->ReadAttributeString("containerId") == null) {
             $this->getContainer();
         }
 

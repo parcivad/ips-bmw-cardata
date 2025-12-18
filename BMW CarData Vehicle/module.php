@@ -10,6 +10,7 @@ class BMWCarDataVehicle extends IPSModuleStrict {
 
         $this->RegisterPropertyString("vin", null);
         $this->RegisterPropertyString("containerId", null);
+        $this->RegisterPropertyString("variables", null);
 
         $this->RegisterAttributeString("basicData", null);
         $this->RegisterAttributeString("image", null);
@@ -91,6 +92,16 @@ class BMWCarDataVehicle extends IPSModuleStrict {
         $basicData = json_decode($this->ReadAttributeString("basicData"), true);
         $image = $this->ReadAttributeString("image");
 
+        $options = [];
+        foreach (json_decode($this->ReadAttributeString("telematicData"), true)["telematicData"] as $key => $value) {
+            if ($value["value"] == null) continue;
+            $options[] = [
+                "caption" => $key,
+                "value" => $key,
+            ];
+        }
+        sort($options);
+
         return json_encode([
             'elements' => [
                 [
@@ -150,6 +161,39 @@ class BMWCarDataVehicle extends IPSModuleStrict {
                                     "constructionDate" => $basicData["constructionDate"],
                                 ]
                             ]
+                        ]
+                    ]
+                ],
+                [
+                    "type" => "ExpansionPanel",
+                    "items" => []
+                ],
+                [
+                    "type" => "List",
+                    "name" => "variables",
+                    "caption" => "Vehicle Data",
+                    "rowCount" => 0,
+                    "add" => true,
+                    "form" => [
+                        [
+                            "type" => "Select",
+                            "name" => "name",
+                            "caption" => "Name",
+                            "width" => "auto",
+                            "options" => $options
+                        ]
+                    ],
+                    "delete" => true,
+                    "sort" => [
+                        "column" => "name",
+                        "direction" => "ascending"
+                    ],
+                    "columns" => [
+                        [
+                            "caption" => "name",
+                            "name" => "name",
+                            "width" => "auto",
+                            "add" => "name"
                         ]
                     ]
                 ]
