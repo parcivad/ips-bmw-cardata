@@ -10,10 +10,10 @@ class BMWCarDataVehicle extends IPSModuleStrict {
 
         $this->RegisterPropertyString("vin", null);
         $this->RegisterPropertyString("containerId", null);
-        $this->RegisterPropertyString("variables", null);
 
         $this->RegisterAttributeString("basicData", null);
         $this->RegisterAttributeString("image", null);
+        $this->RegisterAttributeString("variables", null);
         $this->RegisterAttributeString("telematicData", null);
 
         $this->ConnectParent("{C23F025F-A4CE-7F31-CE14-0AE225778FE7}");
@@ -22,6 +22,12 @@ class BMWCarDataVehicle extends IPSModuleStrict {
     public function ApplyChanges(): void {
         // Don't delete this line
         parent::ApplyChanges();
+    }
+
+    public function updateVariables(array $telematicVariablesList): void {
+        foreach ($telematicVariablesList as $telematicVariable) {
+            if ($telematicVariable["variable"]) echo $telematicVariable["name"];
+        }
     }
 
     public function getBasicData(): array {
@@ -89,18 +95,23 @@ class BMWCarDataVehicle extends IPSModuleStrict {
     public function GetConfigurationForm(): string {
         if ($this->ReadAttributeString("basicData") == null) $this->getBasicData();
         if ($this->ReadAttributeString("image") == null) $this->getImage();
+        if ($this->ReadAttributeString("telematicData") == null) $this->getTelematicData();
+
         $basicData = json_decode($this->ReadAttributeString("basicData"), true);
         $image = $this->ReadAttributeString("image");
+        $variables = json_decode($this->ReadAttributeString("variables"), true);
 
-        $options = [];
+        $values = [];
         foreach (json_decode($this->ReadAttributeString("telematicData"), true)["telematicData"] as $key => $value) {
             if ($value["value"] == null) continue;
-            $options[] = [
-                "caption" => $key,
-                "value" => $key,
+            $values[] = [
+                "name" => $key,
+                "value" => $value["value"],
+                "unit" => $value["unit"],
+                "variable" => isset($variables[$key]),
+                "rowColor" => isset($variables[$key]) ? "#c0ffc0" : ""
             ];
         }
-        sort($options);
 
         return json_encode([
             'elements' => [
@@ -170,32 +181,43 @@ class BMWCarDataVehicle extends IPSModuleStrict {
                 ],
                 [
                     "type" => "List",
-                    "name" => "variables",
+                    "name" => "telematicVariablesList",
                     "caption" => "Vehicle Data",
                     "rowCount" => 0,
-                    "add" => true,
-                    "form" => [
-                        [
-                            "type" => "Select",
-                            "name" => "name",
-                            "caption" => "Name",
-                            "width" => "auto",
-                            "options" => $options
-                        ]
-                    ],
-                    "delete" => true,
+                    "add" => false,
+                    "delete" => false,
                     "sort" => [
                         "column" => "name",
                         "direction" => "ascending"
                     ],
                     "columns" => [
                         [
-                            "caption" => "name",
+                            "caption" => "Name",
                             "name" => "name",
-                            "width" => "auto",
-                            "add" => "name"
+                            "width" => "auto"
+                        ],
+                        [
+                            "caption" => "Value",
+                            "name" => "value",
+                            "width" => "350px"
+                        ],
+                        [
+                            "caption" => "Unit",
+                            "name" => "unit",
+                            "width" => "100px"
+                        ],
+                        [
+                            "caption" => "Represent as variable",
+                            "name" => "variable",
+                            "width" => "100px",
+                            "editable" => true,
+                            "edit" => [
+                                "type" => "CheckBox"
+                            ]
                         ]
-                    ]
+                    ],
+                    "values" => $values,
+                    "onEdit" => 'BMW_updateVariables($id, $telematicVariables);'
                 ]
             ]
         ]);
