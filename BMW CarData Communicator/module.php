@@ -742,7 +742,7 @@ class BMWCarDataCommunicator extends IPSModuleStrict {
                 ["code" => 402, "icon" => "error", "caption" => "Telematic key can not be found"],
                 ["code" => 403, "icon" => "inactive", "caption" => "Authentication Failed"],
                 ["code" => 404, "icon" => "error", "caption" => "Not Found"],
-                ["code" => 429, "icon" => "inactive", "caption" => "Daily API rate limit, no action needed"],
+                ["code" => 429, "icon" => "inactive", "caption" => "Daily API rate limit reached!"],
                 ["code" => 500, "icon" => "inactive", "caption" => "A permanent server error occurred on BMWGroup endpoint!"],
                 ["code" => 503, "icon" => "inactive", "caption" => "A temporary server error occurred on BMWGroup endpoint!"]
             ]
