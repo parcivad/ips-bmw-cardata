@@ -10,11 +10,15 @@ class BMWCarDataVehicle extends IPSModuleStrict {
 
         $this->RegisterPropertyString("vin", null);
         $this->RegisterPropertyString("containerId", null);
+        $this->RegisterPropertyBoolean("update", false);
+        $this->RegisterPropertyInteger("updateInterval", 60);
 
         $this->RegisterAttributeString("basicData", null);
         $this->RegisterAttributeString("image", null);
         $this->RegisterAttributeString("variables", "{}");
         $this->RegisterAttributeString("telematicData", null);
+
+        $this->RegisterTimer('update', 0, "getTelematicData($this->InstanceID);");
 
         $this->ConnectParent("{C23F025F-A4CE-7F31-CE14-0AE225778FE7}");
     }
@@ -22,6 +26,13 @@ class BMWCarDataVehicle extends IPSModuleStrict {
     public function ApplyChanges(): void {
         // Don't delete this line
         parent::ApplyChanges();
+
+        if ($this->ReadPropertyBoolean("automaticUpdate")) {
+            $interval = $this->ReadPropertyInteger("updateInterval") * 60;
+            $this->SetTimerInterval("update", $interval);
+        } else {
+            $this->SetTimerInterval("update", 0);
+        }
     }
 
     public function updateVariables($telematicList): void {
@@ -34,7 +45,7 @@ class BMWCarDataVehicle extends IPSModuleStrict {
             $ident = str_replace(".", "", $key);
 
             if ($variable && !isset($variables[$key])) {
-                switch (gettype($value)) {
+                switch (gettype(json_decode($value))) {
                     case "boolean":
                         $this->RegisterVariableBoolean($ident, $key);
                         break;
@@ -88,13 +99,13 @@ class BMWCarDataVehicle extends IPSModuleStrict {
         $response = $this->SendDataToParent(json_encode([
                 "DataID" => DEVICE_TX,
                 "method" => "GET",
-                "accept" => "*",
+                "accept" => "*/*",
                 "endpoint" => "/customers/vehicles/" . $this->ReadPropertyString("vin") . "/image",
                 "body" => ""
             ]
         ));
-        $uriBase64Image = "data:image/png;base64, " . base64_encode($response);
-        $this->WriteAttributeString("image", $uriBase64Image);
+
+        $this->WriteAttributeString("image", $response);
         return $response;
     }
 
@@ -130,30 +141,34 @@ class BMWCarDataVehicle extends IPSModuleStrict {
         }
 
 
-        $this->WriteAttributeString("telematicData", $response);
+        $this->WriteAttributeString("telematicData", json_encode($telematicData));
         return $telematicData;
     }
 
     public function GetConfigurationForm(): string {
-        if ($this->ReadAttributeString("basicData") == null) $this->getBasicData();
-        if ($this->ReadAttributeString("image") == null) $this->getImage();
-        if ($this->ReadAttributeString("telematicData") == null) $this->getTelematicData();
+        if ($this->ReadAttributeString("basicData") == null || $this->ReadAttributeString("telematicData") == null) {
+            $this->getBasicData();
+            $this->getImage();
+            $this->getTelematicData();
+        }
 
         $basicData = json_decode($this->ReadAttributeString("basicData"), true);
         $image = $this->ReadAttributeString("image");
         $variables = json_decode($this->ReadAttributeString("variables"), true);
 
         $values = [];
-        foreach (json_decode($this->ReadAttributeString("telematicData"), true)["telematicData"] as $key => $value) {
-            if ($value["value"] == null) continue;
-            $values[] = [
-                "key" => $key,
-                "value" => $value["value"],
-                "unit" => $value["unit"] == null ? "" : $value["unit"],
-                "variable" => isset($variables[$key]),
-                "rowColor" => isset($variables[$key]) ? "#c0ffc0" : ""
-            ];
-        }
+        try {
+            foreach (json_decode($this->ReadAttributeString("telematicData"), true) as $key => $value) {
+                if ($value["value"] == null) continue;
+                $values[] = [
+                    "key" => $key,
+                    "value" => $value["value"],
+                    "unit" => $value["unit"] == null ? "" : $value["unit"],
+                    "variable" => isset($variables[$key]),
+                    "rowColor" => isset($variables[$key]) ? "#c0ffc0" : ""
+                ];
+            }
+        } catch (Exception $exception) {}
 
         return json_encode([
             'elements' => [
@@ -219,7 +234,26 @@ class BMWCarDataVehicle extends IPSModuleStrict {
                 [
                     "type" => "ExpansionPanel",
                     "caption" => "🔄 Automatic updates",
-                    "items" => []
+                    "items" => [
+                        [
+                            "type" => "Label",
+                            "label" => "Keep in mind that there is a daily Api-Rate-Limit of 50 request per day. Multiple cars on the same account share this limit!"
+                        ],
+                        [
+                            "type" => "CheckBox",
+                            "name" => "automaticUpdate",
+                            "caption" => "Automatic updates"
+                        ],
+                        [
+                            "type" => "NumberSpinner",
+                            "name" => "updateInterval",
+                            "caption" => "Update interval",
+                            "suffix" => "minutes",
+                            "minimum" => 30,
+                            "maximum" => 1400,
+                            "step" => 1
+                        ]
+                    ]
                 ],
                 [
                     "type" => "List",

@@ -57,6 +57,9 @@ class BMWCarDataCommunicator extends IPSModuleStrict {
         $tokenType = $this->ReadAttributeString("tokenType");
         $accessToken = $this->ReadAttributeString("accessToken");
 
+        // log
+        IPS_LogMessage("BMWCommunicator", "request " . $data["endpoint"]);
+
         $headers = [
             "Authorization: " . $tokenType . " " . $accessToken,
             "Accept: {$data["accept"]}",
@@ -69,7 +72,8 @@ class BMWCarDataCommunicator extends IPSModuleStrict {
             CURLOPT_HTTPHEADER => $headers,
             CURLOPT_CUSTOMREQUEST => $data["method"],
             CURLOPT_POSTFIELDS => $data["body"],
-            CURLOPT_RETURNTRANSFER => true
+            CURLOPT_RETURNTRANSFER => true,
+            CURLOPT_BINARYTRANSFER => true
         ));
         $response = curl_exec($ch);
         $statusCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
@@ -77,6 +81,12 @@ class BMWCarDataCommunicator extends IPSModuleStrict {
 
         // checking on errors
         $this->SetStatus($statusCode == 200 ? 102 : $statusCode);
+
+        if (isset($data["image"])) {
+            $rawBinary = mb_convert_encoding($response, 'ISO-8859-1', 'utf-8');
+            $base64 = base64_encode($rawBinary);
+            return "data:image/png;base64," . $base64;
+        }
 
         return $response;
     }
