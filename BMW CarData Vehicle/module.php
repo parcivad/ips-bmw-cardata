@@ -35,25 +35,15 @@ class BMWCarDataVehicle extends IPSModuleStrict {
         }
     }
 
-    /**
-     * Internal update for configuration list. Will search for any new or deleted variable configurations and add or
-     * remove them from the module instance.
-     *
-     * @param $telematicList        IPSList Telematic List syntax
-     * @return void
-     */
     public function updateVariables($telematicList): void {
-        // get variables configuration
         $variables = json_decode($this->ReadAttributeString("variables"), true);
 
-        // iterate through telematic list and set new value
         foreach ($telematicList as $telematic) {
             $key = $telematic["key"];
             $value = $telematic["value"];
             $variable = $telematic["variable"];
             $ident = str_replace(".", "", $key);
 
-            // add variable to saved list and add to instance with the matching type
             if ($variable && !isset($variables[$key])) {
                 switch (gettype(json_decode($value))) {
                     case "boolean":
@@ -72,14 +62,12 @@ class BMWCarDataVehicle extends IPSModuleStrict {
                 $variables[$key] = true;
             }
 
-            // remove variable from saved list and remove from instance
             if (!$variable && isset($variables[$key])) {
                 $this->UnregisterVariable($ident);
                 unset($variables[$key]);
             }
         }
 
-        // set new
         $this->WriteAttributeString("variables", json_encode($variables));
     }
 
