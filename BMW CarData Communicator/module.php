@@ -652,11 +652,11 @@ class BMWCarDataCommunicator extends IPSModuleStrict {
             "elements" => [
                 [
                     "type" => "ExpansionPanel",
-                    "caption" => "➡️ So verbindest du dein MyBMW Fahrzeug",
+                    "caption" => "➡️ How to connect your MyBMW Vehicle.",
                     "items" => [
                         [
                             "type" => "Label",
-                            "caption" => '1. BMW CarData Client erstellen',
+                            "caption" => '1. Create a BMW CarData Client',
                             "bold" => true
                         ],
                         [
@@ -669,27 +669,27 @@ class BMWCarDataCommunicator extends IPSModuleStrict {
                                 ],
                                 [
                                     "type" => "Label",
-                                    "caption" => 'Klicke auf "BMW Fahrzeuge zum das Portal von BMW für deine Fahrzeuge zu öffenen. Melde dich dort mit deinem Benutzer an und klicke bei irgendeinem deiner Fahrzeuge auf BMW CarData. Scrolle dann runter bis du die Option "BMW CarData Client erstellen findest". Klicke darauf und wähle die Optionen so wie im Bild gezeigt aus, danach kopierst du die "Client ID" und fügst sie hier in dem Modul ein.',
+                                    "caption" => "Click on \"BMW Vehicles\" to open the BMW portal for your vehicles. Log in there with your user and click on BMW CarData for any of your vehicles. Then scroll down until you find the option \"Create BMW CarData Client\". Click on it and select the options as shown in the picture, then copy the \"Client ID\" and paste it here in the module.",
                                 ]
                             ]
                         ],
                         [
                             "type" => "Label",
-                            "caption" => '2. Modul für BMW autorisieren',
+                            "caption" => "2. Authorize Module for BMW",
                             "bold" => true
                         ],
                         [
                             "type" => "Label",
-                            "caption" => 'Klicke dann auf "Autorisieren", es wird sich wieder eine BMW Website öffnen auf der das Modul autorisiert wird. Sobald dort "Anmeldung Erfolgreich" steht ist das Modul autorisiert.',
+                            "caption" => "Then click on \"Authorize\", a BMW website will open again where the module will be authorized. As soon as it says \"Login Successful\" the module is authorized.",
                         ],
                         [
                             "type" => "Label",
-                            "caption" => '3. Autorisierung abschließen',
+                            "caption" => '3. Complete Authorization',
                             "bold" => true
                         ],
                         [
                             "type" => "Label",
-                            "caption" => 'Klicke innerhalb von 3 Minuten auf den Knopf "Autorisierung abschließen", damit das Modul die Autorisierung abschließen kann und zugriff auf deine BMW CarData Fahrzeuge bekommt. Danach werden die zur verfügung stehenden Fahrzeuge in der Übersicht angezeigt.',
+                            "caption" => 'Click on the "Complete authorization" button within 3 minutes so that the module can complete the authorization and gain access to your BMW CarData vehicles. The available vehicles are then displayed in the overview.',
                         ]
                     ]
                 ],
@@ -712,13 +712,13 @@ class BMWCarDataCommunicator extends IPSModuleStrict {
                                         ],
                                         [
                                             "type" => "Button",
-                                            "caption" => "BMW Fahrzeuge",
+                                            "caption" => "BMW Vehicles",
                                             "link" => true,
                                             "onClick" => "echo 'https://www.bmw.de/de-de/mybmw/vehicle-overview';"
                                         ],
                                         [
                                             "type" => "Button",
-                                            "caption" => "Autorisieren",
+                                            "caption" => "Authorize",
                                             "enabled" => !empty($this->ReadPropertyString("clientId")) && empty($this->ReadAttributeString("refreshToken")),
                                             "link" => true,
                                             "onClick" => 'BMWCommunicator_authorize($id);'
@@ -750,7 +750,7 @@ class BMWCarDataCommunicator extends IPSModuleStrict {
                             "add" => false,
                         ],
                         [
-                            "caption" => "Hinzugefügt am",
+                            "caption" => "Created At",
                             "name" => "createdAt",
                             "width" => "50%",
                             "add" => false,

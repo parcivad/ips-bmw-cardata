@@ -352,7 +352,7 @@ class BMWCarDataVehicle extends IPSModuleStrict {
             "actions" => [
                 [
                     "type" => "Button",
-                    "label" => "Refresh Telematic Data",
+                    "label" => "Update Telematic Data",
                     "onClick" => 'BMW_getTelematicData($id);'
                 ]
             ]

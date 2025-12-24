@@ -1,0 +1,17 @@
+{
+  "translations": {
+    "de": {
+      "BMW CarData Vehicle": "BMW CarData Fahrzeug",
+      "Brand": "Marke",
+      "Drive Train": "Antrieb",
+      "Construction Date": "Erstellungsdatum",
+      "\uD83D\uDD04 Automatic updates": "\uD83D\uDD04 Automatische Updates",
+      "Keep in mind that there is a daily Api-Rate-Limit of 50 request per day. Multiple cars on the same account share this limit!": "Beachte, dass es ein tägliches Api-Rate-Limit von 50 Anfragen pro Tag gibt. Mehrere Autos auf demselben Konto teilen sich dieses Limit!",
+      "Automatic updates": "Automatische Updates",
+      "Update interval": "Zeitraum zwischen Updates",
+      "Vehicle Data": "Fahrzeug Daten",
+      "Value": "Wert",
+      "Unit": "Einheit"
+    }
+  }
+}
