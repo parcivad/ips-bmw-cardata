@@ -39,10 +39,10 @@ class BMWCarDataVehicle extends IPSModuleStrict {
      * Internal update for configuration list. Will search for any new or deleted variable configurations and add or
      * remove them from the module instance.
      *
-     * @param IPSList $telematicList      Telematic List syntax
+     * @param $telematicList        IPSList Telematic List syntax
      * @return void
      */
-    public function updateVariables(IPSList $telematicList): void {
+    public function updateVariables($telematicList): void {
         // get variables configuration
         $variables = json_decode($this->ReadAttributeString("variables"), true);
 
