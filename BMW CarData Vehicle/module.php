@@ -5,29 +5,29 @@ const DEVICE_TX = "{3F5C23F7-AC9B-6BFE-C27C-3336F73568B4}";
 class BMWCarDataVehicle extends IPSModuleStrict {
 
     public function Create(): void {
-        // Don't delete this line
         parent::Create();
 
+        // init properties
         $this->RegisterPropertyString("vin", null);
         $this->RegisterPropertyString("containerId", null);
         $this->RegisterPropertyBoolean("update", false);
         $this->RegisterPropertyInteger("updateInterval", 60);
 
+        // init attributes
         $this->RegisterAttributeString("basicData", null);
         $this->RegisterAttributeString("image", null);
         $this->RegisterAttributeString("variables", "{}");
         $this->RegisterAttributeString("telematicData", null);
 
         $this->RegisterTimer('update', 0, "getTelematicData($this->InstanceID);");
-
         $this->ConnectParent("{C23F025F-A4CE-7F31-CE14-0AE225778FE7}");
     }
 
     public function ApplyChanges(): void {
-        // Don't delete this line
         parent::ApplyChanges();
 
-        if ($this->ReadPropertyBoolean("automaticUpdate")) {
+        // set the update timer according to the settings
+        if ($this->ReadPropertyBoolean("update")) {
             $interval = $this->ReadPropertyInteger("updateInterval") * 60;
             $this->SetTimerInterval("update", $interval);
         } else {
@@ -35,15 +35,25 @@ class BMWCarDataVehicle extends IPSModuleStrict {
         }
     }
 
-    public function updateVariables($telematicList): void {
+    /**
+     * Internal update for configuration list. Will search for any new or deleted variable configurations and add or
+     * remove them from the module instance.
+     *
+     * @param array $telematicList      Telematic List syntax
+     * @return void
+     */
+    public function updateVariables(array $telematicList): void {
+        // get variables configuration
         $variables = json_decode($this->ReadAttributeString("variables"), true);
 
+        // iterate through telematic list and set new value
         foreach ($telematicList as $telematic) {
             $key = $telematic["key"];
             $value = $telematic["value"];
             $variable = $telematic["variable"];
             $ident = str_replace(".", "", $key);
 
+            // add variable to saved list and add to instance with the matching type
             if ($variable && !isset($variables[$key])) {
                 switch (gettype(json_decode($value))) {
                     case "boolean":
@@ -62,15 +72,22 @@ class BMWCarDataVehicle extends IPSModuleStrict {
                 $variables[$key] = true;
             }
 
+            // remove variable from saved list and remove from instance
             if (!$variable && isset($variables[$key])) {
                 $this->UnregisterVariable($ident);
                 unset($variables[$key]);
             }
         }
 
+        // set new
         $this->WriteAttributeString("variables", json_encode($variables));
     }
 
+    /**
+     * Get Basic Data from the vehicle
+     *
+     * @return array
+     */
     public function getBasicData(): array {
         $response = $this->SendDataToParent(json_encode([
                 "DataID" => DEVICE_TX,
@@ -84,6 +101,13 @@ class BMWCarDataVehicle extends IPSModuleStrict {
         return json_decode($response, true);
     }
 
+    /**
+     * Get the charging history from the vehicle
+     *
+     * @param string $from      From format:    2025-01-01T00:00:00.000Z
+     * @param string $to        To Format:      2025-01-01T00:00:00.000Z
+     * @return array
+     */
     public function getChargingHistory(string $from, string $to): array {
         return json_decode($this->SendDataToParent(json_encode([
                 "DataID" => DEVICE_TX,
@@ -95,20 +119,39 @@ class BMWCarDataVehicle extends IPSModuleStrict {
         )), true);
     }
 
-    public function getImage(): mixed {
+    /**
+     * Get the image of the vehicle as a data uri base64 encoded png
+     *
+     * @return string       Base64 DataUri PNG
+     */
+    public function getImage(): string {
+        $path = dirname(__DIR__) . "/img/" . $this->ReadPropertyString("vin") . ".png";
+
         $response = $this->SendDataToParent(json_encode([
                 "DataID" => DEVICE_TX,
                 "method" => "GET",
                 "accept" => "*/*",
                 "endpoint" => "/customers/vehicles/" . $this->ReadPropertyString("vin") . "/image",
-                "body" => ""
+                "body" => "",
+                "image" => true
             ]
         ));
+        $binaryImage = base64_decode($response);
+        file_put_contents($path, $binaryImage);
 
-        $this->WriteAttributeString("image", $response);
-        return $response;
+        $image = file_get_contents($path);
+        $base64Image = base64_encode($image);
+        $dataUri = "data:image/png;base64," . $base64Image;
+
+        $this->WriteAttributeString("image", $dataUri);
+        return $dataUri;
     }
 
+    /**
+     * Get location based settings of the vehicle
+     *
+     * @return array
+     */
     public function getLocationBasedSettings(): array {
         return json_decode($this->SendDataToParent(json_encode([
                 "DataID" => DEVICE_TX,
@@ -120,6 +163,11 @@ class BMWCarDataVehicle extends IPSModuleStrict {
         )), true);
     }
 
+    /**
+     * Get telematic Data will return all telematics with the key, value and unit
+     *
+     * @return array        Telematic Data
+     */
     public function getTelematicData(): array {
         $response = $this->SendDataToParent(json_encode([
                 "DataID" => DEVICE_TX,
@@ -132,30 +180,38 @@ class BMWCarDataVehicle extends IPSModuleStrict {
         ));
 
         // update variables
-        $telematicData = json_decode($response, true)["telematicData"];
-        $variables = json_decode($this->ReadAttributeString("variables"), true);
-        foreach ($variables as $key => $value) {
-            $value = $telematicData[$key]["value"];
-            $ident = str_replace(".", "", $key);
-            $this->SetValue($ident, $value);
+        $data = json_decode($response, true);
+        if (isset($data["telematicData"])) {
+            $telematicData = $data["telematicData"];
+            $variables = json_decode($this->ReadAttributeString("variables"), true);
+            foreach ($variables as $key => $value) {
+                $value = $telematicData[$key]["value"];
+                $ident = str_replace(".", "", $key);
+                $this->SetValue($ident, $value);
+            }
+
+
+            $this->WriteAttributeString("telematicData", json_encode($telematicData));
+            return $telematicData;
         }
 
-
-        $this->WriteAttributeString("telematicData", json_encode($telematicData));
-        return $telematicData;
+        return $this->ReadAttributeString("telematicData");
     }
 
     public function GetConfigurationForm(): string {
+        // required data for configuration form
         if ($this->ReadAttributeString("basicData") == null || $this->ReadAttributeString("telematicData") == null) {
             $this->getBasicData();
             $this->getImage();
             $this->getTelematicData();
         }
 
+        // pre set data
         $basicData = json_decode($this->ReadAttributeString("basicData"), true);
         $image = $this->ReadAttributeString("image");
         $variables = json_decode($this->ReadAttributeString("variables"), true);
 
+        // try to show available telematics to add for variables
         $values = [];
         try {
             foreach (json_decode($this->ReadAttributeString("telematicData"), true) as $key => $value) {
@@ -170,6 +226,7 @@ class BMWCarDataVehicle extends IPSModuleStrict {
             }
         } catch (Exception $exception) {}
 
+        // form
         return json_encode([
             'elements' => [
                 [
@@ -241,7 +298,7 @@ class BMWCarDataVehicle extends IPSModuleStrict {
                         ],
                         [
                             "type" => "CheckBox",
-                            "name" => "automaticUpdate",
+                            "name" => "update",
                             "caption" => "Automatic updates"
                         ],
                         [
