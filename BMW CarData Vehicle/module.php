@@ -125,7 +125,7 @@ class BMWCarDataVehicle extends IPSModuleStrict {
      * @return string       Base64 DataUri PNG
      */
     public function getImage(): string {
-        $path = dirname(__DIR__) . "/img/" . $this->ReadPropertyString("vin") . ".png";
+        $path = "/" . $this->ReadPropertyString("vin") . ".png";
 
         $response = $this->SendDataToParent(json_encode([
                 "DataID" => DEVICE_TX,
