@@ -306,8 +306,8 @@ class BMWCarDataVehicle extends IPSModuleStrict {
                 ],
                 [
                     "type" => "List",
+                    "name" => "telematicList",
                     "caption" => "Vehicle Data",
-                    "name" => "telematicVariablesList",
                     "sort" => [
                         "column" => "key",
                         "direction" => "ascending"
@@ -332,14 +332,13 @@ class BMWCarDataVehicle extends IPSModuleStrict {
                             "caption" => "Variable",
                             "name" => "variable",
                             "width" => "80px",
-                            "editable" => true,
                             "edit" => [
                                 "type" => "CheckBox"
                             ]
                         ]
                     ],
                     "values" => $values,
-                    "onEdit" => 'BMW_updateVariables($id, $telematicVariablesList);'
+                    "onEdit" => 'BMW_updateVariables($id, $telematicList);'
                 ]
             ],
             "actions" => [
