@@ -36,6 +36,9 @@ class BMWCarDataVehicle extends IPSModuleStrict {
     }
 
     public function updateVariables($telematicList): void {
+        // list required
+        if ($telematicList == null) return;
+
         $variables = json_decode($this->ReadAttributeString("variables"), true);
 
         foreach ($telematicList as $telematic) {
@@ -113,7 +116,11 @@ class BMWCarDataVehicle extends IPSModuleStrict {
      * @return string       Base64 DataUri PNG
      */
     public function getImage(): string {
-        $path = "/" . $this->ReadPropertyString("vin") . ".png";
+        if (PHP_OS_FAMILY === 'Windows') {
+            $path = "/" . $this->ReadPropertyString("vin") . ".png";
+        } else {
+            $path = dirname(__DIR__) . "/BMW CarData Vehicle/" . $this->ReadPropertyString("vin") . ".png";
+        }
 
         $response = $this->SendDataToParent(json_encode([
                 "DataID" => DEVICE_TX,
