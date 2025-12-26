@@ -35,6 +35,12 @@ class BMWCarDataVehicle extends IPSModuleStrict {
         }
     }
 
+    /**
+     * Internal function to update variables selected in the configuration form.
+     *
+     * @param object $telematicList     IPSList of the telematic variables config
+     * @return void
+     */
     public function updateVariables(object $telematicList): void {
         $variables = json_decode($this->ReadAttributeString("variables"), true);
 
