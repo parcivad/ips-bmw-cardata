@@ -35,7 +35,7 @@ class BMWCarDataVehicle extends IPSModuleStrict {
         }
     }
 
-    public function updateVariables($telematicList): void {
+    public function updateVariables(object $telematicList): void {
         $variables = json_decode($this->ReadAttributeString("variables"), true);
 
         foreach ($telematicList as $telematic) {
