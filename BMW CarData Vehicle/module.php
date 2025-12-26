@@ -36,9 +36,6 @@ class BMWCarDataVehicle extends IPSModuleStrict {
     }
 
     public function updateVariables($telematicList): void {
-        // list required
-        if ($telematicList == null) return;
-
         $variables = json_decode($this->ReadAttributeString("variables"), true);
 
         foreach ($telematicList as $telematic) {
@@ -309,8 +306,8 @@ class BMWCarDataVehicle extends IPSModuleStrict {
                 ],
                 [
                     "type" => "List",
-                    "name" => "telematicList",
                     "caption" => "Vehicle Data",
+                    "name" => "telematicVariablesList",
                     "sort" => [
                         "column" => "key",
                         "direction" => "ascending"
@@ -335,13 +332,14 @@ class BMWCarDataVehicle extends IPSModuleStrict {
                             "caption" => "Variable",
                             "name" => "variable",
                             "width" => "80px",
+                            "editable" => true,
                             "edit" => [
                                 "type" => "CheckBox"
                             ]
                         ]
                     ],
                     "values" => $values,
-                    "onEdit" => 'BMW_updateVariables($id, $telematicList);'
+                    "onEdit" => 'BMW_updateVariables($id, $telematicVariablesList);'
                 ]
             ],
             "actions" => [
