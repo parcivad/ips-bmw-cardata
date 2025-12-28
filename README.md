@@ -1,21 +1,21 @@
 # IPS BMW CarData
 ![Symcon](https://img.shields.io/badge/Symcon-IPSModuleStrict-blue?style=flat) ![Symcon Version](https://img.shields.io/badge/Symcon%20Version->7.0-green?style=flat) ![Version](https://img.shields.io/badge/Version-Beta%20v1.0-yellow?style=flat) ![Build](https://img.shields.io/badge/Build-testing-important?style=flat)
 
-This is a IP-Symcon third party module for the public BMW CarData integration to use it in your Symcon system.
+This is an IP-Symcon third party module for the public BMW CarData integration to use it in your Symcon system.
 With the module you can access up to 250+ data points of your vehicle depending on capability of the vehicle.
-The module provides you with a selector so you can choose with telematic data you want to include in your Symcon and handles all the authorization for you.
-Additional to that there is an automatic update function so you can keep your data up to date. 
+The module provides you with a selector so you can choose which telematic data you want to include in your IP-Symcon.
+Additional to that there is an automatic update function so you can keep your data up to date. There is no method or functionality to send actions to the vehicle as the public BMW CarData integration does not provide these methods.
 
 ![Example of the Vehicle Instance](/exampleVehicleInstance.png)
 
-## Getting Started
+# Getting Started
 Get started in two easy steps. After that you can continue in the BMW CarData Communicator instance to finish your setup.
 
-1. Install the **BMW CarData** Module via the IP-Symcon Module Store that you can find in the Management Console. Do not auto create a Vehicle instance as suggested from the installation.
+1. Install the **BMW CarData** Module via the IP-Symcon Module Store that you can find in the Management Console. Do not auto create a vehicle instance as suggested from the installation.
 2. Create the **BMW CarData Communicator** in the Splitter Category. From there on follow the guide on how to add your BMW Vehicles.
 
 ## Automatic updates
-You can set a automatic update in the vehicle configuration to update the telematic data variables with a given time interval. Account for the API rate limit on one or more vehicles when using this feature!
+You can set an automatic update in the vehicle configuration to update the telematic data variables with a given time interval. Account for the API rate limit on one or more vehicles when using this feature!
 
 ## Methods
 ### BMW_getBasicData()
