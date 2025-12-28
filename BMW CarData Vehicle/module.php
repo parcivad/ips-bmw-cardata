@@ -203,7 +203,7 @@ class BMWCarDataVehicle extends IPSModuleStrict {
             $this->getImage();
             $response = $this->getTelematicData();
             // catch gateway or init error
-            if ($response == []) return json_encode([]);
+            if ($response == []) return "";
         }
 
         // pre set data
