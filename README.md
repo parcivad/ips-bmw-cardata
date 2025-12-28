@@ -29,6 +29,8 @@ BMW_getBasicData($instanceID);
   <summary>Response</summary>
 
 ```json
+Response:
+
 {
   "vin": "string",
   "brand": "BMW",
@@ -199,6 +201,8 @@ Request all telematic data of the vehicle. The vehicle instance will also **upda
 BMW_getTelematicData($instanceID);
 ```
 ```json
+Response:
+
 {
   "key": {
     "value": "string",
