@@ -761,7 +761,18 @@ class BMWCarDataCommunicator extends IPSModuleStrict {
                         "direction" => "descending"
                     ],
                     "values" => $this->getVehicleMapping(),
-                ]
+                ],
+                [
+                    "type" => "Label",
+                    "width" => "auto",
+                    "caption" => "Wenn dir das IP-Symcon Modul gefällt und du meine Arbeit unterstützen möchtest, würde ich mich über eine kleine Spende sehr freuen."
+                ],
+                [
+                    "type" => "Button",
+                    "caption" => "Spenden ❤️",
+                    "link" => true,
+                    "onClick" => "echo 'https://www.paypal.com/donate/?hosted_button_id=EEZAN85DTA4NS';"
+                ],
             ],
             "status" => [
                 ["code" => 400, "icon" => "error", "caption" => "Bad request"],

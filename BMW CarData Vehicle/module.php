@@ -19,7 +19,7 @@ class BMWCarDataVehicle extends IPSModuleStrict {
         $this->RegisterAttributeString("variables", "{}");
         $this->RegisterAttributeString("telematicData", null);
 
-        $this->RegisterTimer('update', 0, "getTelematicData($this->InstanceID);");
+        $this->RegisterTimer('update', 0, "BMW_getTelematicData($this->InstanceID);");
         $this->ConnectParent("{C23F025F-A4CE-7F31-CE14-0AE225778FE7}");
     }
 
@@ -162,7 +162,7 @@ class BMWCarDataVehicle extends IPSModuleStrict {
     }
 
     /**
-     * Get telematic Data will return all telematics with the key, value and unit
+     * Get telematic Data will return all telematics with the key, value and unitq
      *
      * @return array        Telematic Data
      */
