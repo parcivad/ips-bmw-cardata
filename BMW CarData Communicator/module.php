@@ -765,11 +765,11 @@ class BMWCarDataCommunicator extends IPSModuleStrict {
                 [
                     "type" => "Label",
                     "width" => "auto",
-                    "caption" => "Wenn dir das IP-Symcon Modul gefällt und du meine Arbeit unterstützen möchtest, würde ich mich über eine kleine Spende sehr freuen."
+                    "caption" => "If you like the IP-Symcon module and would like to support my work, I would be very happy about a small donation."
                 ],
                 [
                     "type" => "Button",
-                    "caption" => "Spenden ❤️",
+                    "caption" => "Donate ❤️",
                     "link" => true,
                     "onClick" => "echo 'https://www.paypal.com/donate/?hosted_button_id=EEZAN85DTA4NS';"
                 ],
