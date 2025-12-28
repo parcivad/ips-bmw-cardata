@@ -72,6 +72,7 @@ class BMWCarDataCommunicator extends IPSModuleStrict {
         $headers = [
             "Authorization: " . $tokenType . " " . $accessToken,
             "Accept: {$data["accept"]}",
+            $data["method"] == "POST" ? "Content-Type: application/json" : null,
             "x-version: v1"
         ];
 
@@ -269,19 +270,22 @@ class BMWCarDataCommunicator extends IPSModuleStrict {
      */
     private function getContainer(): void {
         // check for existing telematic container because of limitation
-        $containers = json_decode($this->ForwardData(json_encode([
+        $response = json_decode($this->ForwardData(json_encode([
                 "DataID" => "{3F5C23F7-AC9B-6BFE-C27C-3336F73568B4}",
                 "method" => "GET",
                 "accept" => "application/json",
                 "endpoint" => "/customers/containers",
                 "body" => ""
             ]
-        )), true)["containers"];
+        )), true);
 
-        foreach ($containers as $container) {
-            if ($container["name"] == "ips-bmw-cardata") {
-                $this->WriteAttributeString("containerId", $container["containerId"]);
-                return;
+        // check for content
+        if (isset($response["containers"])) {
+            foreach ($response["containers"] as $container) {
+                if ($container["name"] == "ips-bmw-cardata") {
+                    $this->WriteAttributeString("containerId", $container["containerId"]);
+                    return;
+                }
             }
         }
 
@@ -583,7 +587,11 @@ class BMWCarDataCommunicator extends IPSModuleStrict {
                 ])
             ]
         )), true);
-        $this->WriteAttributeString("containerId", $container["containerId"]);
+
+        // check for content
+        if (isset($container["containerId"])) {
+            $this->WriteAttributeString("containerId", $container["containerId"]);
+        }
     }
 
     /**
@@ -680,7 +688,7 @@ class BMWCarDataCommunicator extends IPSModuleStrict {
                         ],
                         [
                             "type" => "Label",
-                            "caption" => "Then click on \"Authorize\", a BMW website will open again where the module will be authorized. As soon as it says \"Login Successful\" the module is authorized.",
+                            "caption" => 'Then click in the module on "Authorize" (not on the BMW Website), a BMW website will open again where the module will be authorized. As soon as it says "Login Successful" the module is authorized.',
                         ],
                         [
                             "type" => "Label",
