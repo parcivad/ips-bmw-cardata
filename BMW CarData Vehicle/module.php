@@ -201,7 +201,9 @@ class BMWCarDataVehicle extends IPSModuleStrict {
         if ($this->ReadAttributeString("basicData") == null || $this->ReadAttributeString("telematicData") == null) {
             $this->getBasicData();
             $this->getImage();
-            $this->getTelematicData();
+            $response = $this->getTelematicData();
+            // catch gateway or init error
+            if ($response == []) return json_encode([]);
         }
 
         // pre set data
