@@ -28,7 +28,7 @@ class BMWCarDataVehicle extends IPSModuleStrict {
 
         // set the update timer according to the settings
         if ($this->ReadPropertyBoolean("update")) {
-            $interval = $this->ReadPropertyInteger("updateInterval") * 60;
+            $interval = $this->ReadPropertyInteger("updateInterval") * 60000;
             $this->SetTimerInterval("update", $interval);
         } else {
             $this->SetTimerInterval("update", 0);
