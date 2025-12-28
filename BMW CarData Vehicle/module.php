@@ -192,20 +192,14 @@ class BMWCarDataVehicle extends IPSModuleStrict {
             $this->WriteAttributeString("telematicData", json_encode($telematicData));
             return $telematicData;
         }
-
-        return $this->ReadAttributeString("telematicData");
     }
 
     public function GetConfigurationForm(): string {
         // required data for configuration form
         if ($this->ReadAttributeString("basicData") == null || $this->ReadAttributeString("telematicData") == null) {
-            try {
-                $this->getBasicData();
-                $this->getImage();
-                $this->getTelematicData();
-            } catch (Exception $exception) {
-                return json_encode([]);
-            }
+            $this->getBasicData();
+            $this->getImage();
+            $this->getTelematicData();
         }
 
         // pre set data
