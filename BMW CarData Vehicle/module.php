@@ -199,9 +199,13 @@ class BMWCarDataVehicle extends IPSModuleStrict {
     public function GetConfigurationForm(): string {
         // required data for configuration form
         if ($this->ReadAttributeString("basicData") == null || $this->ReadAttributeString("telematicData") == null) {
-            $this->getBasicData();
-            $this->getImage();
-            $this->getTelematicData();
+            try {
+                $this->getBasicData();
+                $this->getImage();
+                $this->getTelematicData();
+            } catch (Exception $exception) {
+                return json_encode([]);
+            }
         }
 
         // pre set data
