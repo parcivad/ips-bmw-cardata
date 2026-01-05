@@ -8,6 +8,13 @@ Additional to that there is an automatic update function so you can keep your da
 
 ![Example of the Vehicle Instance](/exampleVehicleInstance.png)
 
+### Donate
+If you like the IP-Symcon module and appreciate the free solution in comparison to other high pricing options, I would be very thankful and happy about a small donation.
+
+<a href="https://www.paypal.com/donate/?hosted_button_id=EEZAN85DTA4NS">
+  <img src="https://raw.githubusercontent.com/stefan-niedermann/paypal-donate-button/master/paypal-donate-button.png" alt="Donate with PayPal" width="150px" />
+</a>
+
 # Getting Started
 Get started in two easy steps. After that you can continue in the BMW CarData Communicator instance to finish your setup.
 
