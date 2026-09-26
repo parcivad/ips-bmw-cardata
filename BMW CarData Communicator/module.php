@@ -180,7 +180,8 @@ class BMWCarDataCommunicator extends IPSModuleStrict {
         $statusCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
         curl_close($ch);
 
-        // checking on errors
+        // checking on errors, BMW sends the daily rate limit as 403 with error id CU-429
+        if ($statusCode == 403 && str_contains($response, "CU-429")) $statusCode = 429;
         $this->SetStatus($statusCode == 200 ? 102 : $statusCode);
 
         if (isset($data["image"])) {
