@@ -226,4 +226,13 @@ More information on the telematic data keys and their values is descripted in th
 The use of the CarData APIs is subject to a daily rate limit of 50 requests. This limit is shared by multiple cars on the same account. If the limit is reached, it will be displayed as an error code in the communicator. You have to wait until the next day.
 
 
-These 50 requests are in most cases not ideal or not enough to keep your vehicle information up to date. There is a better solution with a live stream that is giving real-time data of the vehicle as soon as it gets sent to BMW servers, but this function is **still in the making**.
+These 50 requests are in most cases not ideal or not enough to keep your vehicle information up to date. The better solution is the CarData Stream.
+
+## CarData Stream
+The CarData Stream delivers the vehicle data in real time as soon as the vehicle sends it to the BMW servers, without using the API rate limit. Enable it with the **CarData Stream** checkbox in the BMW CarData Communicator. The communicator then keeps one MQTT connection to BMW, renews it with the newest token every hour and forwards the data to the vehicle instances, which update their selected variables.
+
+Requirements in the BMW CarData portal:
+1. Subscribe your client ID to **CarData Stream** before authorizing the module. If you authorized before, authorize again.
+2. Configure the data stream and select the data keys you want to receive.
+
+The stream permanently occupies one PHP script thread in IP-Symcon. Only one stream client runs per communicator, a stopped client is restarted automatically within a minute.

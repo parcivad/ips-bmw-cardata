@@ -53,6 +53,34 @@ class BMWCarDataVehicle extends IPSModuleStrict {
         } else {
             $this->SetTimerInterval("update", 0);
         }
+
+        // only receive the CarData Stream data of this vehicle
+        $this->SetReceiveDataFilter('.*"vin":"' . $this->ReadPropertyString("vin") . '".*');
+    }
+
+    /**
+     * Live data of the CarData Stream from the communicator, updates the telematic data and selected variables.
+     *
+     * @param string $JSONString        {"vin": "...", "data": {"key": {"value": ..., "unit": ..., "timestamp": ...}}}
+     * @return string
+     */
+    public function ReceiveData(string $JSONString): string {
+        $telematicData = json_decode($this->ReadAttributeString("telematicData"), true) ?? [];
+        $variables = json_decode($this->ReadAttributeString("variables"), true);
+
+        foreach (json_decode($JSONString, true)["data"] as $key => $telematic) {
+            // same format as the telematic data api, which delivers all values as strings
+            $value = $telematic["value"] ?? null;
+            if ($value !== null && !is_string($value)) $value = json_encode($value);
+            $telematicData[$key] = ["value" => $value, "unit" => $telematic["unit"] ?? null, "timestamp" => $telematic["timestamp"] ?? null];
+
+            if (isset($variables[$key]) && $value !== null) {
+                $this->SetValue(str_replace(".", "", $key), $value);
+            }
+        }
+
+        $this->WriteAttributeString("telematicData", json_encode($telematicData));
+        return "";
     }
 
     /**
