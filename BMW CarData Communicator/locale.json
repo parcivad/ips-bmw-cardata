@@ -12,7 +12,6 @@
       "Authorize": "Autorisieren",
       "Complete authorization": "Autorisierung abschließen",
       "Created At": "Hinzugefügt am",
-      "Receives the vehicle data live as soon as the vehicle sends it, without the daily API rate limit. Requires the CarData Stream to be turned on.": "Empfängt die Fahrzeugdaten live, sobald das Fahrzeug sie sendet, ohne das tägliche API-Rate-Limit. Vorraussetzung dafür ist, dass der BMW CarData Stream auf der BMW-Seite eingeschaltet ist.",
       "If you like the IP-Symcon module and would like to support my work, I would be very happy about a small donation.": "Wenn dir das IP-Symcon Modul gefällt und du meine Arbeit unterstützen möchtest, würde ich mich über eine kleine Spende sehr freuen.",
       "Donate ❤️": "Spenden ❤️"
     }

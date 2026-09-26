@@ -870,10 +870,6 @@ class BMWCarDataCommunicator extends IPSModuleStrict {
                     "caption" => "CarData Stream"
                 ],
                 [
-                    "type" => "Label",
-                    "caption" => "Receives the vehicle data live as soon as the vehicle sends it, without the daily API rate limit. Requires the CarData Stream subscription (before the authorization) and a stream configuration in the BMW CarData portal. The stream permanently occupies one script thread."
-                ],
-                [
                     "type" => "Configurator",
                     "name" => "BMWCarDataDiscovery",
                     "caption" => "BMW CarData Fahrzeuge",
