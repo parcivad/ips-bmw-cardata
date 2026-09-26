@@ -1,6 +1,6 @@
 <?php
 
-require_once __DIR__ . "/../utils/CarDataMQTTClient.php";
+require_once __DIR__ . "/../CarDataMQTTClient.php";
 
 class BMWCarDataCommunicator extends IPSModuleStrict {
 
@@ -66,18 +66,11 @@ class BMWCarDataCommunicator extends IPSModuleStrict {
 
     /**
      * CarData Stream: keeps one MQTT connection to BMW and forwards the live vehicle data to the vehicle instances.
-     * The client occupies one script thread as long as the stream is enabled. It is started by ApplyChanges and
-     * every minute by the timer, the semaphore makes sure only one client runs, so a timer run only takes over when
-     * the client died. BMW allows only one connection per account anyway.
      *
      * @return void
      */
     public function stream(): void {
-        $semaphore = "BMWCarDataStream" . $this->InstanceID;
-        if (!IPS_SemaphoreEnter($semaphore, 0)) return;
-
-        set_time_limit(0);
-        $codeVersion = fn() => filemtime(__FILE__) . filemtime(__DIR__ . "/../utils/CarDataMQTTClient.php");
+        $codeVersion = fn() => filemtime(__FILE__) . filemtime(__DIR__ . "/../CarDataMQTTClient.php");
         $startVersion = $codeVersion();
         $client = new CarDataMQTTClient();
         $connectedToken = null;
@@ -86,6 +79,8 @@ class BMWCarDataCommunicator extends IPSModuleStrict {
         $retryAt = 0;
         $refreshAt = 0;
 
+        $semaphore = "BMWCarDataStream" . $this->InstanceID;
+        if (!IPS_SemaphoreEnter($semaphore, 0)) return;
         try {
             // stop on shutdown, deletion, deactivation, missing authorization and module updates,
             // the timer starts the client again with the new code
